@@ -1,0 +1,1956 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Ranjan Sir Academy - Admin Panel Pro</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    input, select, textarea { 
+      user-select: text; 
+      -webkit-user-select: text;
+    }
+
+    :root {
+      --bg-gradient: radial-gradient(circle at 40% 30%, #dbe8df, #9cb3a8);
+      --text-dark: #1f3a2b;
+      --text-muted: #3d5e4a;
+      --card-border: rgba(255, 255, 255, 0.75);
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg-gradient);
+      color: var(--text-dark);
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .app-container {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg-gradient);
+    }
+
+    .top-bar {
+      padding: 14px 20px;
+      background: rgba(220, 240, 225, 0.55);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 20;
+      border-bottom: 1.5px solid var(--card-border);
+      box-shadow: 0 8px 20px rgba(20, 45, 30, 0.08);
+      flex-shrink: 0;
+    }
+
+    .brand-area { display: flex; align-items: center; gap: 8px; }
+    .top-bar h2 {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.8);
+    }
+
+    #custom-toast {
+      position: fixed;
+      top: -70px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(225, 250, 230, 0.95);
+      border: 1.5px solid var(--card-border);
+      color: var(--text-dark);
+      padding: 12px 22px;
+      border-radius: 40px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: inset -4px -5px 8px rgba(30, 70, 50, 0.2), inset 4px 5px 8px rgba(255, 255, 255, 0.9), 0 12px 20px rgba(15, 35, 15, 0.15);
+      backdrop-filter: blur(16px);
+      z-index: 999999999999;
+      transition: top 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      pointer-events: none;
+    }
+    #custom-toast.show { top: 20px; }
+    #custom-toast i { color: #2e6618; font-size: 1.1rem; }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(20, 45, 30, 0.45);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999999999 !important;
+      backdrop-filter: blur(8px);
+    }
+    .modal-card {
+      background: rgba(225, 248, 230, 0.99);
+      border: 1.5px solid var(--card-border);
+      padding: 22px;
+      border-radius: 32px;
+      width: 90%;
+      max-width: 380px;
+      text-align: center;
+      box-shadow: inset -6px -8px 12px rgba(30, 70, 50, 0.2), inset 6px 8px 12px rgba(255, 255, 255, 0.9), 0 25px 40px rgba(15, 35, 15, 0.35);
+      z-index: 10000000000 !important;
+    }
+
+    #full-option-modal {
+      z-index: 99999999999 !important;
+    }
+
+    .content-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      padding-bottom: 100px;
+      scroll-behavior: smooth;
+      z-index: 10;
+      -webkit-overflow-scrolling: touch;
+      position: relative;
+    }
+    .content-area::-webkit-scrollbar { display: none; }
+
+    .view-section { display: none; }
+    .view-section.active { display: block; animation: viewIn 0.2s ease-out; }
+
+    #view-chat.active {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding-bottom: 95px;
+    }
+
+    @keyframes viewIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+      background: rgba(215, 242, 222, 0.45);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1.5px solid var(--card-border);
+      border-radius: 28px;
+      padding: 18px;
+      margin-bottom: 18px;
+      box-shadow: inset -6px -8px 12px rgba(30, 70, 50, 0.15), inset 6px 8px 12px rgba(255, 255, 255, 0.85), 0 12px 20px -4px rgba(20, 45, 30, 0.12);
+    }
+
+    .form-group { margin-bottom: 14px; text-align: left; }
+    .form-group label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 700; }
+    
+    .input-field {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.6);
+      border: 1.5px solid var(--card-border);
+      border-radius: 18px;
+      padding: 12px 16px;
+      color: var(--text-dark);
+      outline: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      box-shadow: inset 2px 3px 6px rgba(20, 45, 30, 0.1);
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      border-radius: 20px;
+      border: 1.5px solid rgba(255, 255, 255, 0.85);
+      background: rgba(200, 240, 208, 0.75);
+      backdrop-filter: blur(12px);
+      color: #1f3a2b;
+      font-weight: 800;
+      font-size: 0.95rem;
+      cursor: pointer;
+      box-shadow: inset -4px -5px 8px rgba(30, 70, 50, 0.2), inset 4px 5px 8px rgba(255, 255, 255, 0.9), 0 8px 15px -3px rgba(20, 45, 30, 0.15);
+      transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .btn-submit:active { transform: translateY(4px) scale(0.97); }
+
+    .btn-upload-video {
+      background: rgba(16, 185, 129, 0.85);
+      color: #ffffff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+      margin-top: 10px;
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.25);
+      border-color: rgba(239, 68, 68, 0.5);
+      color: #b91c1c;
+      margin-top: 10px;
+      padding: 8px 12px;
+      font-size: 0.8rem;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.6);
+      color: var(--text-dark);
+      margin-top: 10px;
+      padding: 10px 14px;
+      font-size: 0.85rem;
+    }
+
+    .btn-warning {
+      background: rgba(234, 179, 8, 0.3);
+      border-color: rgba(234, 179, 8, 0.6);
+      color: #854d0e;
+    }
+
+    .btn-lock-red {
+      background: rgba(239, 68, 68, 0.25) !important;
+      border-color: rgba(239, 68, 68, 0.6) !important;
+      color: #b91c1c !important;
+    }
+
+    .btn-lock-green {
+      background: rgba(16, 185, 129, 0.25) !important;
+      border-color: rgba(16, 185, 129, 0.6) !important;
+      color: #047857 !important;
+    }
+
+    .nav-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 85px;
+      background: rgba(220, 242, 225, 0.55);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1.5px solid var(--card-border);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 9999;
+      padding: 0 6px;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-dark);
+      cursor: pointer;
+      width: 52px;
+      height: 52px;
+      position: relative;
+      border: 1.5px solid var(--card-border);
+      background: rgba(200, 238, 208, 0.55);
+      backdrop-filter: blur(12px);
+      box-shadow: inset -4px -5px 8px rgba(30, 70, 50, 0.2), inset 4px 5px 8px rgba(255, 255, 255, 0.9), 0 6px 12px -3px rgba(20, 45, 30, 0.15);
+      transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .nav-item i { font-size: 1.1rem; pointer-events: none; }
+    .nav-item span { font-size: 0.52rem; margin-top: 2px; font-weight: 800; pointer-events: none; }
+
+    .nav-pebble-1 { border-radius: 48% 52% 45% 55% / 53% 47% 53% 47%; }
+    .nav-pebble-2 { border-radius: 54% 46% 58% 42% / 44% 56% 44% 56%; }
+    .nav-pebble-3 { border-radius: 45% 55% 48% 52% / 55% 45% 55% 45%; }
+    .nav-pebble-4 { border-radius: 52% 48% 54% 46% / 47% 53% 47% 53%; }
+    .nav-pebble-5 { border-radius: 49% 51% 52% 48% / 46% 54% 46% 54%; }
+
+    .nav-item.active {
+      transform: translateY(-3px) scale(1.05);
+      border-color: rgba(255, 255, 255, 0.95);
+      background: rgba(185, 232, 198, 0.85);
+    }
+    .nav-item:active { transform: translateY(6px) scale(0.92) !important; }
+
+    .chat-container { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 12px; 
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 0 15px 0;
+      -webkit-overflow-scrolling: touch;
+    }
+    .chat-container::-webkit-scrollbar { display: none; }
+
+    .chat-message { display: flex; align-items: flex-end; gap: 8px; max-width: 85%; position: relative; }
+    .chat-message.my-message { align-self: flex-end; flex-direction: row-reverse; }
+    .chat-message.other-message { align-self: flex-start; flex-direction: row; }
+
+    .chat-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--card-border); cursor: pointer; flex-shrink: 0; background: #fff; }
+    .chat-bubble-wrapper { display: flex; flex-direction: column; max-width: 100%; position: relative; }
+    
+    .chat-bubble { 
+      padding: 12px 16px; 
+      border-radius: 22px; 
+      font-size: 0.9rem; 
+      border: 1.5px solid var(--card-border); 
+      box-shadow: inset -4px -5px 8px rgba(30, 70, 50, 0.12), inset 4px 5px 8px rgba(255, 255, 255, 0.8); 
+      word-break: break-word; 
+    }
+    
+    .my-message .chat-bubble { background: rgba(234, 179, 8, 0.9); color: #000; font-weight: 700; border-bottom-right-radius: 4px; }
+    .other-message .chat-bubble { background: rgba(255, 255, 255, 0.75); color: var(--text-dark); border-bottom-left-radius: 4px; }
+
+    .msg-actions-popup {
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 6px;
+      align-self: flex-start;
+      animation: fadeIn 0.2s ease-in;
+    }
+    .my-message .msg-actions-popup { align-self: flex-end; }
+    .msg-actions-popup.show { display: flex; }
+
+    .action-badge-btn {
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 5px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .btn-delete-msg { color: #b91c1c; background: rgba(254, 226, 226, 0.95); border: 1px solid rgba(239, 68, 68, 0.5); }
+    .btn-block-usr { color: #854d0e; background: rgba(254, 240, 138, 0.95); border: 1px solid rgba(234, 179, 8, 0.6); }
+    .btn-unblock-usr { color: #15803d; background: rgba(220, 252, 231, 0.95); border: 1px solid rgba(34, 197, 94, 0.6); }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .chat-input-bar {
+      display: none;
+      gap: 10px;
+      padding: 12px 16px;
+      background: rgba(220, 242, 225, 0.95);
+      backdrop-filter: blur(16px);
+      border-top: 1.5px solid var(--card-border);
+      position: absolute;
+      bottom: 85px;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      box-shadow: 0 -6px 20px rgba(0,0,0,0.08);
+    }
+    .send-btn { width: 48px; height: 48px; border-radius: 50%; background: rgba(200, 240, 210, 0.85); border: 1.5px solid rgba(255, 255, 255, 0.85); color: #1f3a2b; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+
+    .rank-badge-chat {
+      font-size: 0.6rem;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 8px;
+      color: #fff;
+      margin-left: 4px;
+    }
+    .rank-1-badge { background: #eab308; color: #000; }
+    .rank-2-badge { background: #94a3b8; }
+    .rank-3-badge { background: #d97706; }
+
+    .seen-list-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.08); text-align: left; position: relative; }
+    .seen-list-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--card-border); flex-shrink: 0; cursor: pointer; }
+
+    .score-control-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin: 15px 0;
+    }
+    .score-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1.5px solid var(--card-border);
+      background: rgba(200, 240, 208, 0.85);
+      color: #1f3a2b;
+      font-size: 1.2rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: inset -3px -3px 6px rgba(0,0,0,0.1), inset 3px 3px 6px rgba(255,255,255,0.8);
+    }
+    .score-display-input {
+      width: 80px;
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: 800;
+      padding: 8px;
+      border-radius: 16px;
+      border: 1.5px solid var(--card-border);
+      background: rgba(255,255,255,0.7);
+      outline: none;
+    }
+
+    .graph-container {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-around;
+      height: 180px;
+      background: rgba(255, 255, 255, 0.45);
+      border: 1.5px solid var(--card-border);
+      border-radius: 20px;
+      padding: 15px 10px 10px 10px;
+      margin-top: 12px;
+      gap: 8px;
+    }
+    .graph-bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+      justify-content: flex-end;
+      max-width: 50px;
+    }
+    .graph-bar-value {
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-bottom: 4px;
+    }
+    .graph-building-bar {
+      width: 100%;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      box-shadow: inset 2px 2px 4px rgba(255,255,255,0.4), 0 4px 10px rgba(0,0,0,0.1);
+      transition: height 0.4s ease-in-out;
+      min-height: 4px;
+      cursor: pointer;
+    }
+    .bar-green { background: linear-gradient(180deg, #10b981 0%, #047857 100%); }
+    .bar-red { background: linear-gradient(180deg, #ef4444 0%, #b91c1c 100%); }
+    .graph-bar-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-top: 6px;
+      text-align: center;
+      width: 100%;
+      cursor: pointer;
+      text-decoration: underline dotted;
+    }
+
+    .sub-tab-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+    .sub-tab-btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: 16px;
+      border: 1.5px solid var(--card-border);
+      background: rgba(255, 255, 255, 0.5);
+      color: var(--text-dark);
+      font-weight: 800;
+      font-size: 0.85rem;
+      cursor: pointer;
+      text-align: center;
+    }
+    .sub-tab-btn.active {
+      background: rgba(185, 232, 198, 0.9);
+      border-color: rgba(255, 255, 255, 0.95);
+    }
+  </style>
+</head>
+<body onclick="hideAllDeleteButtons(event)">
+
+  <div id="custom-toast">
+    <i class="fa-solid fa-circle-check"></i>
+    <span id="toast-message">Action Completed!</span>
+  </div>
+
+  <div class="app-container">
+    <div class="top-bar">
+      <div class="brand-area">
+        <h2>Ranjan Sir Admin</h2>
+      </div>
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <button class="btn-submit" style="width: auto; padding: 6px 12px; font-size: 0.75rem;" onclick="openGlobalRankingsModal()"><i class="fa-solid fa-trophy" style="color: #eab308;"></i> Rankings</button>
+      </div>
+    </div>
+
+    <div class="content-area" id="main-content-scroll">
+      
+      <!-- 1. VIDEOS -->
+      <div id="view-videos" class="view-section active">
+        <div class="card">
+          <h3 style="font-size: 1rem; font-weight: 800; margin-bottom: 12px; color: var(--text-dark);"><i class="fa-solid fa-video"></i> Post Video Lecture</h3>
+          <div class="form-group"><label>Title</label><input type="text" id="v-title" class="input-field" placeholder="Video Title"></div>
+          <div class="form-group"><label>YouTube Video ID</label><input type="text" id="v-id" class="input-field" placeholder="e.g. dQw4w9WgXcQ"></div>
+          <button class="btn-submit" type="button" onclick="postVideo()">Publish Video</button>
+          
+          <button class="btn-submit btn-upload-video" type="button" onclick="triggerExternalVideoUpload()">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Upload Video
+          </button>
+        </div>
+        <div id="videos-list-container"></div>
+      </div>
+
+      <!-- 2. QUIZZES & PAPERS -->
+      <div id="view-quizzes" class="view-section">
+        <div class="sub-tab-bar">
+          <div id="subtab-btn-single" class="sub-tab-btn active" onclick="switchQuizSubTab('single')">Single Quiz</div>
+          <div id="subtab-btn-papers" class="sub-tab-btn" onclick="switchQuizSubTab('papers')">Papers (HTML)</div>
+        </div>
+
+        <div id="quiz-subview-single">
+          <div class="card">
+            <h3 style="font-size: 1rem; font-weight: 800; margin-bottom: 12px; color: var(--text-dark);"><i class="fa-solid fa-file-pen"></i> Create Quiz & Select Answer</h3>
+            <div class="form-group"><textarea id="q-text" class="input-field" style="height: 60px; resize: none;" placeholder="Question text..."></textarea></div>
+            <div class="form-group">
+              <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;"><input type="radio" name="quizCorrect" value="0" checked><input type="text" id="q-opt-0" class="input-field" placeholder="Option A (Correct)"></div>
+              <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;"><input type="radio" name="quizCorrect" value="1"><input type="text" id="q-opt-1" class="input-field" placeholder="Option B"></div>
+              <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;"><input type="radio" name="quizCorrect" value="2"><input type="text" id="q-opt-2" class="input-field" placeholder="Option C"></div>
+              <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;"><input type="radio" name="quizCorrect" value="3"><input type="text" id="q-opt-3" class="input-field" placeholder="Option D"></div>
+            </div>
+            <button class="btn-submit" type="button" onclick="postQuiz()">Publish Quiz</button>
+          </div>
+          <div id="quizzes-list-container"></div>
+        </div>
+
+        <div id="quiz-subview-papers" style="display: none;">
+          <div class="card">
+            <h3 style="font-size: 1rem; font-weight: 800; margin-bottom: 8px; color: var(--text-dark);"><i class="fa-solid fa-newspaper"></i> Publish Bulk Question Paper Set</h3>
+            <p style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 12px;">Paste AI-generated HTML containing multiple MCQ or Text-Input questions.</p>
+            
+            <div class="form-group">
+              <label>Paper Title / Chapter Name</label>
+              <input type="text" id="paper-title-input" class="input-field" placeholder="e.g. Science Chapter 1 Mock Test">
+            </div>
+
+            <div class="form-group">
+              <label>Paper HTML Code</label>
+              <textarea id="paper-html-input" class="input-field" style="height: 120px; font-family: monospace; font-size: 0.8rem;" placeholder="Paste HTML questions here..."></textarea>
+            </div>
+
+            <button class="btn-submit" type="button" onclick="postPaperSet()">Publish Paper Set</button>
+            <button class="btn-submit btn-secondary" type="button" onclick="showAIPromptGuide()"><i class="fa-solid fa-robot"></i> View AI Prompt Format</button>
+          </div>
+          <div id="papers-list-container"></div>
+        </div>
+      </div>
+
+      <!-- 3. POLLS -->
+      <div id="view-polls" class="view-section">
+        <div class="card">
+          <h3 style="font-size: 1rem; font-weight: 800; margin-bottom: 12px; color: var(--text-dark);"><i class="fa-solid fa-square-poll-vertical"></i> Create Voting Poll (Max 10)</h3>
+          <div class="form-group"><input type="text" id="poll-title" class="input-field" placeholder="Poll Question..."></div>
+          
+          <div id="poll-options-dynamic-box">
+            <div class="poll-opt-input-row" style="display:flex; gap:8px; align-items:center; margin-bottom:8px;"><input type="text" class="input-field poll-opt-val" placeholder="Option 1"></div>
+            <div class="poll-opt-input-row" style="display:flex; gap:8px; align-items:center; margin-bottom:8px;"><input type="text" class="input-field poll-opt-val" placeholder="Option 2"></div>
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-bottom: 14px;">
+            <button class="btn-submit" style="background: rgba(255,255,255,0.6);" type="button" onclick="addPollOptionInput()"><i class="fa-solid fa-plus"></i> Add Option</button>
+          </div>
+          <button class="btn-submit" type="button" onclick="postPoll()">Publish Poll</button>
+        </div>
+        <div id="polls-list-container"></div>
+      </div>
+
+      <!-- 4. LIVE CLASS CONTROL -->
+      <div id="view-live" class="view-section">
+        <div class="card">
+          <h3 style="font-size: 1rem; font-weight: 800; margin-bottom: 12px; color: var(--text-dark);"><i class="fa-solid fa-tower-broadcast"></i> Live Class Control</h3>
+          <div class="form-group">
+            <label>YouTube Live Stream Title</label>
+            <input type="text" id="live-stream-title" class="input-field" placeholder="e.g. Chapter 4 Special Live Class">
+          </div>
+          <div class="form-group">
+            <label>YouTube Live Video ID</label>
+            <input type="text" id="live-stream-id" class="input-field" placeholder="e.g. dQw4w9WgXcQ">
+          </div>
+          <button class="btn-submit" type="button" onclick="startLiveStream()">Start Live Broadcast</button>
+          <button class="btn-submit btn-danger" type="button" onclick="endLiveStream()">Stop & Save Live Class</button>
+        </div>
+
+        <h3 style="font-size: 0.95rem; font-weight: 800; margin: 15px 0 10px 4px; color: var(--text-dark);">Past Ended Live Classes (Saved)</h3>
+        <div id="past-lives-container"></div>
+      </div>
+
+      <!-- 5. CHAT VIEW -->
+      <div id="view-chat" class="view-section">
+        <div class="chat-container" id="chat-messages-container"></div>
+      </div>
+
+    </div>
+
+    <div id="chat-bar-wrapper" class="chat-input-bar">
+      <input type="text" id="chat-input-msg" class="input-field" placeholder="Type as Principal..." onkeypress="handleChatKeyPress(event)">
+      <button class="send-btn" type="button" onclick="sendAdminMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+
+    <!-- Full Option Text Popup Modal -->
+    <div id="full-option-modal" class="modal-overlay" onclick="closeFullOptionModal()">
+      <div class="modal-card" onclick="event.stopPropagation()">
+        <h3 style="font-size: 1.05rem; font-weight: 800; margin-bottom: 10px; color: var(--text-dark);">Full Option Text</h3>
+        <p id="full-option-text-display" style="font-size: 0.9rem; font-weight: 600; background: rgba(255,255,255,0.8); padding: 16px; border-radius: 18px; margin-bottom: 20px; border: 1.5px solid var(--card-border); word-break: break-word; text-align: left;"></p>
+        <button class="btn-submit btn-secondary" style="margin-top:0;" type="button" onclick="closeFullOptionModal()">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Publish Result Preview Modal -->
+    <div id="publish-result-modal" class="modal-overlay" onclick="closePublishResultModal()">
+      <div class="modal-card" style="max-height: 80vh; overflow-y: auto;" onclick="event.stopPropagation()">
+        <h3 style="font-size: 1.05rem; font-weight: 800; margin-bottom: 4px; color: var(--text-dark);"><i class="fa-solid fa-bullhorn" style="color: #2563eb;"></i> Publish Result Preview</h3>
+        <p style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 12px;">Review ranked student scores below before final publishing.</p>
+        <div id="publish-result-list-container" style="text-align: left; max-height: 50vh; overflow-y: auto;"></div>
+        <div style="display: flex; gap: 8px; margin-top: 15px;">
+          <button class="btn-submit btn-secondary" style="margin-top:0;" onclick="closePublishResultModal()">Cancel</button>
+          <button class="btn-submit" style="margin-top:0; background: rgba(16, 185, 129, 0.9); color:#fff;" onclick="confirmPublishResultFinal()">Publish Now</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Text Input Answer Review Modal for Admin -->
+    <div id="text-answer-review-modal" class="modal-overlay" onclick="closeTextAnswerModal()">
+      <div class="modal-card" onclick="event.stopPropagation()">
+        <h3 style="font-size: 1rem; font-weight: 800; margin-bottom: 6px; color: var(--text-dark);">Review Student Answer</h3>
+        <p id="tar-student-name" style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 10px;">Student Name</p>
+        
+        <div style="text-align: left; background: rgba(255,255,255,0.6); padding: 12px; border-radius: 14px; margin-bottom: 12px; border: 1px solid var(--card-border);">
+          <div style="font-size: 0.72rem; font-weight: 800; color: var(--text-muted); margin-bottom: 4px;">Submitted Text Answer:</div>
+          <p id="tar-student-answer" style="font-size: 0.88rem; font-weight: 700; color: var(--text-dark); word-break: break-word;"></p>
+        </div>
+
+        <div class="form-group" style="text-align: left;">
+          <label>Award Score (Points)</label>
+          <input type="number" id="tar-award-score" class="input-field" value="1">
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+          <button class="btn-submit btn-secondary" style="margin-top:0;" onclick="closeTextAnswerModal()">Cancel</button>
+          <button class="btn-submit" style="margin-top:0; background: rgba(16, 185, 129, 0.85); color:#fff;" onclick="submitTextAnswerEvaluation(true)">Approve / Correct</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Score Manager Modal -->
+    <div id="score-manager-modal" class="modal-overlay" onclick="closeScoreManagerModal()">
+      <div class="modal-card" onclick="event.stopPropagation()">
+        <img id="sm-dp" src="" style="width: 75px; height: 75px; border-radius: 50%; border: 2px solid var(--card-border); margin-bottom: 8px; object-fit: cover;">
+        <h3 id="sm-name" style="font-weight: 800; font-size: 1.05rem;">Student Name</h3>
+        <p id="sm-roll" style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px;">Roll: -</p>
+        
+        <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Manage Student Score</div>
+        <div class="score-control-box">
+          <div class="score-btn" onclick="adjustModalScore(-1)"><i class="fa-solid fa-minus"></i></div>
+          <input type="number" id="sm-score-val" class="score-display-input" value="0">
+          <div class="score-btn" onclick="adjustModalScore(1)"><i class="fa-solid fa-plus"></i></div>
+        </div>
+
+        <button class="btn-submit" type="button" onclick="saveStudentScore()"><i class="fa-solid fa-floppy-disk"></i> Save Score</button>
+        <button class="btn-submit btn-danger" type="button" onclick="confirmDeleteProfilePrompt()"><i class="fa-solid fa-trash"></i> Delete Profile</button>
+      </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirm-delete-modal" class="modal-overlay">
+      <div class="modal-card" style="padding: 25px;" onclick="event.stopPropagation()">
+        <i class="fa-solid fa-triangle-exclamation" style="font-size: 2.2rem; color: #b91c1c; margin-bottom: 10px;"></i>
+        <h3 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 8px;">Are you sure?</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; font-weight: 600;">Are you sure you want to delete this profile? It will be permanently removed from Firebase.</p>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn-submit btn-secondary" style="margin-top:0;" onclick="closeConfirmDeleteModal()">Cancel</button>
+          <button class="btn-submit btn-danger" style="margin-top:0;" onclick="executeDeleteStudentProfile()">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Student Details Modal -->
+    <div id="profile-modal" class="modal-overlay" onclick="closeModal()">
+      <div class="modal-card" onclick="event.stopPropagation()">
+        <img id="m-dp" src="" style="width: 85px; height: 85px; border-radius: 50%; border: 2px solid var(--card-border); margin-bottom: 8px; object-fit: cover;">
+        <h3 id="m-name" style="margin-bottom: 4px;">Student Name</h3>
+        <p id="m-role" style="font-size: 0.75rem; color: #2e6618; font-weight:800; margin-bottom: 12px;">Student</p>
+        <div style="text-align: left; background: rgba(255,255,255,0.5); padding: 14px; border-radius: 18px; font-size: 0.85rem; border: 1px solid var(--card-border);">
+          <p><strong>Roll No:</strong> <span id="m-roll">-</span></p>
+          <p><strong>Class:</strong> <span id="m-class">-</span></p>
+          <p><strong>Board:</strong> <span id="m-board">-</span></p>
+          <p><strong>Score:</strong> <span id="m-score">0</span> pts</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Global Rankings Modal -->
+    <div id="rankings-modal" class="modal-overlay" onclick="closeRankingsModal()">
+      <div class="modal-card" style="max-height: 75vh; overflow-y: auto;" onclick="event.stopPropagation()">
+        <h3 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 4px; color: var(--text-dark);"><i class="fa-solid fa-trophy" style="color: #eab308;"></i> Class Rankings</h3>
+        <p style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 12px;">Hold on a student to Edit Score or Delete Profile</p>
+        <div id="rankings-list-container"></div>
+        <button class="btn-submit" style="margin-top: 15px; padding: 10px;" type="button" onclick="closeRankingsModal()">Close</button>
+      </div>
+    </div>
+
+    <!-- Quiz/Poll Responses Modal -->
+    <div id="responses-modal" class="modal-overlay" onclick="closeResponsesModal()">
+      <div class="modal-card" style="max-height: 75vh; overflow-y: auto;" onclick="event.stopPropagation()">
+        <h3 id="responses-modal-title" style="font-size: 1.05rem; font-weight: 800; margin-bottom: 12px; color: var(--text-dark);">Voters / Answers Details</h3>
+        <div id="responses-list-container"></div>
+        <button class="btn-submit" style="margin-top: 15px; padding: 10px;" type="button" onclick="closeResponsesModal()">Close</button>
+      </div>
+    </div>
+
+    <!-- AI Prompt Guide Modal -->
+    <div id="ai-prompt-modal" class="modal-overlay" onclick="closeAIPromptGuide()">
+      <div class="modal-card" style="max-height: 85vh; overflow-y: auto; text-align: left;" onclick="event.stopPropagation()">
+        <h3 style="font-size: 1.05rem; font-weight: 800; margin-bottom: 8px; color: var(--text-dark);"><i class="fa-solid fa-robot"></i> Smart AI Prompt Template</h3>
+        <p style="font-size: 0.73rem; color: var(--text-muted); margin-bottom: 10px;">Copy this prompt and paste it to any AI. It supports MCQ and Text-Input questions:</p>
+        <textarea class="input-field" style="height: 200px; font-size: 0.72rem; font-family: monospace;" readonly>Hello AI! You are my quiz question generator assistant for Ranjan Sir Academy. 
+When I give you this prompt, please FIRST ask me:
+1. Do you want MCQ questions or Text-Input questions where students type their answers?
+2. Do you want to provide a text/paper or should I generate them based on a topic?
+Once I reply, generate questions strictly in this HTML format:
+
+For MCQ:
+&lt;div class="question-block" data-type="mcq" data-correct="0"&gt;
+  &lt;p class="q-text"&gt;1. Question text here?&lt;/p&gt;
+  &lt;div class="q-opt"&gt;Option A&lt;/div&gt;
+  &lt;div class="q-opt"&gt;Option B&lt;/div&gt;
+&lt;/div&gt;
+
+For Text-Input:
+&lt;div class="question-block" data-type="text"&gt;
+  &lt;p class="q-text"&gt;1. What is the capital of India?&lt;/p&gt;
+  &lt;div class="q-opt"&gt;[TEXT_INPUT]&lt;/div&gt;
+&lt;/div&gt;
+
+Ask me how I want to proceed now!</textarea>
+        <button class="btn-submit" style="margin-top: 15px; padding: 10px;" type="button" onclick="closeAIPromptGuide()">Got It</button>
+      </div>
+    </div>
+
+    <!-- Nav Bar -->
+    <div class="nav-bar">
+      <div class="nav-item nav-pebble-1 active" onclick="switchTab('videos')"><i class="fa-solid fa-video"></i><span>Videos</span></div>
+      <div class="nav-item nav-pebble-2" onclick="switchTab('quizzes')"><i class="fa-solid fa-file-pen"></i><span>Quizzes</span></div>
+      <div class="nav-item nav-pebble-3" onclick="switchTab('polls')"><i class="fa-solid fa-square-poll-vertical"></i><span>Polls</span></div>
+      <div class="nav-item nav-pebble-4" onclick="switchTab('live')"><i class="fa-solid fa-tower-broadcast"></i><span>Live</span></div>
+      <div class="nav-item nav-pebble-5" onclick="switchTab('chat')"><i class="fa-solid fa-comment-dots"></i><span>Chat</span></div>
+    </div>
+  </div>
+
+  <script>
+    // Updated Firebase URL
+    const FIREBASE_URL = "https://live-app-bdba9-default-rtdb.firebaseio.com/";
+    const TARGET_UPLOADER_URL = "https://ankeshkumar6931-ui.github.io/RNS-live/RNSadmin.html";
+
+    let homePosts = [];
+    let quizzesList = [];
+    let papersList = [];
+    let pollsList = [];
+    let savedLivesList = [];
+    let currentLiveObj = null;
+    let userProfilesMap = {};
+    let currentChatList = [];
+    let lastRenderedChatJson = "";
+
+    const adminUser = {
+      id: 'admin_ranjan_sir',
+      name: 'Ranjan Sir',
+      dp: 'https://api.dicebear.com/7.x/bottts/svg?seed=MaleTeacherRanjanPro',
+      isAdmin: true
+    };
+
+    function showToast(msg) {
+      const toast = document.getElementById('custom-toast');
+      document.getElementById('toast-message').innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => { toast.classList.remove('show'); }, 3000);
+    }
+
+    function triggerExternalVideoUpload() {
+      showToast('Opening External Video Uploader...');
+      if (window.AppInventor && window.AppInventor.setWebViewString) {
+        window.AppInventor.setWebViewString("OPEN_URL:" + TARGET_UPLOADER_URL);
+      }
+      const intentUrl = "intent://" + TARGET_UPLOADER_URL.replace(/^https?:\/\//, '') + "#Intent;scheme=https;package=com.android.chrome;end";
+      try {
+        window.location.href = intentUrl;
+      } catch(e) {
+        window.open(TARGET_UPLOADER_URL, '_blank');
+      }
+    }
+
+    function getSafeShortLabel(text) {
+      if (!text) return "";
+      let clean = text.trim();
+      if (clean.length <= 3) return clean;
+      return clean.substring(0, 3) + "...";
+    }
+
+    function showFullOptionPopup(fullText) {
+      document.getElementById('full-option-text-display').innerText = fullText;
+      document.getElementById('full-option-modal').style.display = 'flex';
+    }
+
+    function closeFullOptionModal() {
+      document.getElementById('full-option-modal').style.display = 'none';
+    }
+
+    async function fetchData() {
+      try {
+        let res = await fetch(`${FIREBASE_URL}/.json`);
+        let data = await res.json();
+        if (data) {
+          if (data.UsersMap) userProfilesMap = data.UsersMap;
+          else userProfilesMap = {};
+
+          if (data.homePosts) {
+            homePosts = Array.isArray(data.homePosts) ? data.homePosts : Object.values(data.homePosts);
+            renderVideosList();
+          }
+          if (data.Quizzes) {
+            quizzesList = Array.isArray(data.Quizzes) ? data.Quizzes : Object.values(data.Quizzes);
+            renderQuizzesList();
+          }
+          if (data.Papers) {
+            papersList = Array.isArray(data.Papers) ? data.Papers : Object.values(data.Papers);
+            renderPapersList();
+          }
+          if (data.Polls) {
+            pollsList = Array.isArray(data.Polls) ? data.Polls : Object.values(data.Polls);
+            renderPollsList();
+          }
+          if (data.SavedLives) {
+            savedLivesList = Array.isArray(data.SavedLives) ? data.SavedLives : Object.values(data.SavedLives);
+            renderPastLivesList();
+          }
+          if (data.liveVideoData) {
+            currentLiveObj = data.liveVideoData;
+            document.getElementById('live-stream-title').value = currentLiveObj.title || '';
+            document.getElementById('live-stream-id').value = currentLiveObj.videoId || '';
+          }
+          if (data.GlobalChat) {
+            const rawChat = Array.isArray(data.GlobalChat) ? data.GlobalChat : Object.values(data.GlobalChat);
+            const chatString = JSON.stringify(rawChat);
+            if (chatString !== lastRenderedChatJson) {
+              lastRenderedChatJson = chatString;
+              currentChatList = rawChat;
+              renderChatMessages(currentChatList);
+            }
+          }
+        }
+      } catch(e) {}
+    }
+
+    fetchData();
+    setInterval(fetchData, 1000);
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+      document.getElementById('view-' + tabName).classList.add('active');
+
+      const tabMap = { 'videos': 0, 'quizzes': 1, 'polls': 2, 'live': 3, 'chat': 4 };
+      const navItems = document.querySelectorAll('.nav-item');
+      navItems.forEach(i => i.classList.remove('active'));
+      if (navItems[tabMap[tabName]]) navItems[tabMap[tabName]].classList.add('active');
+
+      document.getElementById('chat-bar-wrapper').style.display = (tabName === 'chat') ? 'flex' : 'none';
+      if (tabName === 'chat') {
+        setTimeout(scrollChatToBottom, 100);
+      }
+    }
+
+    function switchQuizSubTab(subType) {
+      if (subType === 'single') {
+        document.getElementById('subtab-btn-single').classList.add('active');
+        document.getElementById('subtab-btn-papers').classList.remove('active');
+        document.getElementById('quiz-subview-single').style.display = 'block';
+        document.getElementById('quiz-subview-papers').style.display = 'none';
+      } else {
+        document.getElementById('subtab-btn-papers').classList.add('active');
+        document.getElementById('subtab-btn-single').classList.remove('active');
+        document.getElementById('quiz-subview-papers').style.display = 'block';
+        document.getElementById('quiz-subview-single').style.display = 'none';
+      }
+    }
+
+    function showAIPromptGuide() {
+      document.getElementById('ai-prompt-modal').style.display = 'flex';
+    }
+    function closeAIPromptGuide() {
+      document.getElementById('ai-prompt-modal').style.display = 'none';
+    }
+
+    function scrollChatToBottom() {
+      const chatContainer = document.getElementById('chat-messages-container');
+      if (chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+    }
+
+    /* Video Logic */
+    async function postVideo() {
+      const title = document.getElementById('v-title').value.trim();
+      const videoId = document.getElementById('v-id').value.trim();
+      if (!title || !videoId) { showToast('Fill all video details'); return; }
+
+      homePosts.unshift({ id: 'vid_' + Date.now(), title, videoId, date: new Date().toLocaleDateString() });
+      await fetch(`${FIREBASE_URL}/homePosts.json`, { method: 'PUT', body: JSON.stringify(homePosts) });
+      showToast('Video Published Successfully!');
+      document.getElementById('v-title').value = '';
+      document.getElementById('v-id').value = '';
+      renderVideosList();
+    }
+
+    async function deleteVideo(id) {
+      homePosts = homePosts.filter(v => v.id !== id);
+      await fetch(`${FIREBASE_URL}/homePosts.json`, { method: 'PUT', body: JSON.stringify(homePosts) });
+      showToast('Video Deleted');
+      renderVideosList();
+    }
+
+    function renderVideosList() {
+      const container = document.getElementById('videos-list-container');
+      container.innerHTML = '';
+      if (homePosts.length === 0) { container.innerHTML = '<div class="card">No Videos</div>'; return; }
+
+      homePosts.forEach(v => {
+        container.innerHTML += `
+          <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-weight:800; font-size:0.9rem;">${v.title}</div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">ID: ${v.videoId}</div>
+            </div>
+            <button class="btn-submit btn-danger" style="width:auto; margin:0;" onclick="deleteVideo('${v.id}')"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        `;
+      });
+    }
+
+    /* Single Quiz Logic */
+    async function postQuiz() {
+      const text = document.getElementById('q-text').value.trim();
+      const opt0 = document.getElementById('q-opt-0').value.trim();
+      const opt1 = document.getElementById('q-opt-1').value.trim();
+      const opt2 = document.getElementById('q-opt-2').value.trim();
+      const opt3 = document.getElementById('q-opt-3').value.trim();
+
+      let correctIdx = 0;
+      document.getElementsByName('quizCorrect').forEach((r, idx) => { if(r.checked) correctIdx = idx; });
+
+      if (!text || !opt0 || !opt1) { showToast('Question & 2 options required'); return; }
+
+      const uniqueQuestionId = 'quiz_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+
+      quizzesList.unshift({
+        id: uniqueQuestionId,
+        question: text,
+        options: [opt0, opt1, opt2, opt3].filter(o => o !== ''),
+        correctIndex: correctIdx,
+        isAnswersDisabled: false,
+        responses: {}
+      });
+
+      await fetch(`${FIREBASE_URL}/Quizzes.json`, { method: 'PUT', body: JSON.stringify(quizzesList) });
+      showToast('Quiz Published!');
+      document.getElementById('q-text').value = '';
+      document.getElementById('q-opt-0').value = '';
+      document.getElementById('q-opt-1').value = '';
+      document.getElementById('q-opt-2').value = '';
+      document.getElementById('q-opt-3').value = '';
+      renderQuizzesList();
+    }
+
+    async function toggleQuizDisableAnswers(id) {
+      const q = quizzesList.find(item => item.id === id);
+      if (!q) return;
+      q.isAnswersDisabled = !q.isAnswersDisabled;
+      await fetch(`${FIREBASE_URL}/Quizzes.json`, { method: 'PUT', body: JSON.stringify(quizzesList) });
+      showToast(q.isAnswersDisabled ? 'Answers Disabled (Locked) for Users!' : 'Answers Enabled for Users!');
+      renderQuizzesList();
+    }
+
+    async function deleteQuiz(id) {
+      const quizToDelete = quizzesList.find(q => q.id === id);
+      if (quizToDelete && quizToDelete.responses) {
+        for (let uid in quizToDelete.responses) {
+          const studentAns = quizToDelete.responses[uid];
+          if (userProfilesMap[uid]) {
+            userProfilesMap[uid].score = userProfilesMap[uid].score || 0;
+            if (studentAns === quizToDelete.correctIndex) {
+              userProfilesMap[uid].score -= 1;
+            } else {
+              userProfilesMap[uid].score += 1;
+            }
+          }
+        }
+        await fetch(`${FIREBASE_URL}/UsersMap.json`, { method: 'PUT', body: JSON.stringify(userProfilesMap) });
+      }
+
+      quizzesList = quizzesList.filter(q => q.id !== id);
+      await fetch(`${FIREBASE_URL}/Quizzes.json`, { method: 'PUT', body: JSON.stringify(quizzesList) });
+      showToast('Quiz Deleted & Scores Rolled Back Safely!');
+      renderQuizzesList();
+    }
+
+    function renderQuizzesList() {
+      const container = document.getElementById('quizzes-list-container');
+      container.innerHTML = '';
+      if (quizzesList.length === 0) { container.innerHTML = '<div class="card">No Quizzes</div>'; return; }
+
+      quizzesList.forEach(q => {
+        let optionStats = q.options.map((optText, idx) => {
+          let count = 0;
+          const resp = q.responses || {};
+          for (let uid in resp) {
+            if (resp[uid] === idx) count++;
+          }
+          return { text: optText, index: idx, count: count, isCorrect: (idx === q.correctIndex) };
+        });
+
+        optionStats.sort((a, b) => b.count - a.count);
+
+        let maxVotes = 1;
+        optionStats.forEach(st => { if (st.count > maxVotes) maxVotes = st.count; });
+
+        let graphColsHtml = '';
+        optionStats.forEach(st => {
+          const heightPercent = Math.max(12, Math.round((st.count / maxVotes) * 100));
+          const barColorClass = st.isCorrect ? 'bar-green' : 'bar-red';
+          const shortLbl = getSafeShortLabel(st.text);
+          const escapedFull = encodeURIComponent(st.text);
+
+          graphColsHtml += `
+            <div class="graph-bar-col" title="${st.text}: ${st.count} votes">
+              <div class="graph-bar-value">${st.count}</div>
+              <div class="graph-building-bar ${barColorClass}" style="height: ${heightPercent}%;" onclick="showQuizOptionVoters('${q.id}', ${st.index})"></div>
+              <div class="graph-bar-label" onclick="showFullOptionPopup(decodeURIComponent('${escapedFull}'))">${shortLbl} ${st.isCorrect ? '✅' : ''}</div>
+            </div>
+          `;
+        });
+
+        let totalResponses = Object.keys(q.responses || {}).length;
+        let isDisabled = q.isAnswersDisabled || false;
+
+        container.innerHTML += `
+          <div class="card">
+            <div style="font-weight:800; font-size:0.9rem; color:var(--text-dark); margin-bottom:4px;">${q.question}</div>
+            <div style="font-size:0.72rem; color:var(--text-muted); margin-bottom:8px;">
+              Total Answers: ${totalResponses} | Status: <strong style="color:${isDisabled ? '#b91c1c' : '#15803d'}">${isDisabled ? '🔒 Answers Disabled' : '🟢 Answers Open'}</strong>
+            </div>
+            <div class="graph-container">
+              ${graphColsHtml}
+            </div>
+            <div style="display: flex; gap: 8px; margin-top: 12px;">
+              <button class="btn-submit btn-warning" style="flex:1; padding:10px; font-size:0.8rem;" onclick="toggleQuizDisableAnswers('${q.id}')">
+                <i class="fa-solid ${isDisabled ? 'fa-lock-open' : 'fa-lock'}"></i> ${isDisabled ? 'Enable Answers' : 'Disable Answers'}
+              </button>
+              <button class="btn-submit btn-danger" style="width:auto; margin:0; padding:10px 14px;" onclick="deleteQuiz('${q.id}')"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function showQuizOptionVoters(quizId, optIdx) {
+      const quiz = quizzesList.find(q => q.id === quizId);
+      if (!quiz) return;
+      const optText = quiz.options[optIdx];
+      const isCorrect = (optIdx === quiz.correctIndex);
+      const container = document.getElementById('responses-list-container');
+      document.getElementById('responses-modal-title').innerText = `Voters for: "${optText}" ${isCorrect ? '(Correct)' : '(Wrong)'}`;
+      container.innerHTML = '';
+
+      const respObj = quiz.responses || {};
+      const matchingUids = Object.keys(respObj).filter(uid => respObj[uid] === optIdx);
+
+      if (matchingUids.length === 0) {
+        container.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:15px;">No students selected this option.</div>';
+      } else {
+        matchingUids.forEach(uid => {
+          const uProf = userProfilesMap[uid] || { name: 'Student', roll: 'N/A', classVal: 'N/A', board: 'N/A', dp: 'https://api.dicebear.com/7.x/bottts/svg?seed=User' };
+          container.innerHTML += `
+            <div class="seen-list-item" onclick="showUserModalFromProfile('${uid}')" style="cursor:pointer;">
+              <img src="${uProf.dp}" class="seen-list-avatar">
+              <div style="flex:1;">
+                <div style="font-size:0.9rem; font-weight:800; color:var(--text-dark);">${uProf.name}</div>
+                <div style="font-size:0.72rem; color:var(--text-muted);">Roll: ${uProf.roll || 'N/A'} | ${uProf.classVal || 'N/A'}</div>
+              </div>
+              <div style="font-size:0.72rem; font-weight:800; color:${isCorrect ? '#15803d':'#b91c1c'};">${isCorrect ? 'Correct':'Wrong'}</div>
+            </div>
+          `;
+        });
+      }
+      document.getElementById('responses-modal').style.display = 'flex';
+    }
+
+    /* Papers Logic */
+    async function postPaperSet() {
+      const title = document.getElementById('paper-title-input').value.trim();
+      const htmlCode = document.getElementById('paper-html-input').value.trim();
+
+      if (!title || !htmlCode) { showToast('Title and HTML code required'); return; }
+
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlCode, 'text/html');
+      const questionDivs = doc.querySelectorAll('.question-block');
+
+      if (questionDivs.length === 0) {
+        showToast('Invalid HTML! No .question-block found.');
+        return;
+      }
+
+      let parsedQuestions = [];
+      questionDivs.forEach((qBlock, qIdx) => {
+        const qTextEl = qBlock.querySelector('.q-text');
+        const optEls = qBlock.querySelectorAll('.q-opt');
+        const qType = qBlock.getAttribute('data-type') || 'mcq';
+        const correctIdx = parseInt(qBlock.getAttribute('data-correct')) || 0;
+
+        if (qTextEl && optEls.length >= 1) {
+          let optsArr = [];
+          optEls.forEach(opt => optsArr.push(opt.innerText.trim()));
+          parsedQuestions.push({
+            id: 'pq_' + Date.now() + '_' + qIdx,
+            question: qTextEl.innerText.trim(),
+            type: qType,
+            options: optsArr,
+            correctIndex: correctIdx,
+            responses: {}
+          });
+        }
+      });
+
+      if (parsedQuestions.length === 0) {
+        showToast('Could not parse any valid questions.');
+        return;
+      }
+
+      const paperObj = {
+        id: 'paper_' + Date.now(),
+        title: title,
+        isAnswersDisabled: false,
+        questions: parsedQuestions,
+        paperSubmissions: {}
+      };
+
+      papersList.unshift(paperObj);
+      await fetch(`${FIREBASE_URL}/Papers.json`, { method: 'PUT', body: JSON.stringify(papersList) });
+      showToast('Paper Set Published Successfully!');
+      document.getElementById('paper-title-input').value = '';
+      document.getElementById('paper-html-input').value = '';
+      renderPapersList();
+    }
+
+    async function togglePaperDisableAnswers(paperId) {
+      const paper = papersList.find(p => p.id === paperId);
+      if (!paper) return;
+      paper.isAnswersDisabled = !paper.isAnswersDisabled;
+      await fetch(`${FIREBASE_URL}/Papers.json`, { method: 'PUT', body: JSON.stringify(papersList) });
+      showToast(paper.isAnswersDisabled ? 'Paper Answers Locked!' : 'Paper Answers Open!');
+      renderPapersList();
+    }
+
+    function renderPapersList() {
+      const container = document.getElementById('papers-list-container');
+      container.innerHTML = '';
+      if (papersList.length === 0) { container.innerHTML = '<div class="card">No Paper Sets Published</div>'; return; }
+
+      papersList.forEach(p => {
+        let qListHtml = '';
+        p.questions.forEach((q, qIdx) => {
+          let ansCount = Object.keys(q.responses || {}).length;
+          qListHtml += `
+            <div style="background: rgba(255,255,255,0.5); padding: 10px 12px; border-radius: 14px; margin-bottom: 8px; border: 1px solid var(--card-border); display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="showPaperQuestionGraph('${p.id}', ${qIdx})">
+              <div>
+                <div style="font-size:0.85rem; font-weight:800; color:var(--text-dark);">Q${qIdx+1}. ${q.question}</div>
+                <div style="font-size:0.7rem; color:var(--text-muted);">Type: ${q.type.toUpperCase()} | Responses: ${ansCount}</div>
+              </div>
+              <div style="font-size:0.8rem; font-weight:800; color:#2e6618;"><i class="fa-solid fa-chart-simple"></i> View</div>
+            </div>
+          `;
+        });
+
+        let totalSubs = Object.keys(p.paperSubmissions || {}).length;
+        let isDisabled = p.isAnswersDisabled || false;
+
+        container.innerHTML += `
+          <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+              <div>
+                <h3 style="font-size:1rem; font-weight:800; color:var(--text-dark);">${p.title}</h3>
+                <div style="font-size:0.72rem; color:var(--text-muted);">ID: ${p.id} | Questions: ${p.questions.length} | Submissions: ${totalSubs}</div>
+              </div>
+              <button class="btn-submit btn-danger" style="width:auto; margin:0; padding:6px 10px;" onclick="deletePaperSet('${p.id}')"><i class="fa-solid fa-trash"></i></button>
+            </div>
+            <div style="margin: 12px 0;">${qListHtml}</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button class="btn-submit" style="flex:1; min-width:130px; padding:10px; font-size:0.8rem; background:rgba(234,179,8,0.3); color:#854d0e;" onclick="showPaperScoresGraph('${p.id}')"><i class="fa-solid fa-trophy"></i> Leaderboard</button>
+              <button class="btn-submit ${isDisabled ? 'btn-lock-red' : 'btn-lock-green'}" style="flex:1; min-width:130px; padding:10px; font-size:0.8rem;" onclick="togglePaperDisableAnswers('${p.id}')">
+                <i class="fa-solid ${isDisabled ? 'fa-lock' : 'fa-lock-open'}"></i> ${isDisabled ? 'Locked' : 'Unlocked'}
+              </button>
+              <button class="btn-submit" style="flex:1; min-width:130px; padding:10px; font-size:0.8rem; background:rgba(59, 130, 246, 0.25); color:#1d4ed8;" onclick="openPublishResultModal('${p.id}')"><i class="fa-solid fa-bullhorn"></i> Publish Result</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    let publishingPaperId = null;
+
+    function openPublishResultModal(paperId) {
+      const paper = papersList.find(p => p.id === paperId);
+      if (!paper) return;
+
+      let hasUngradedText = false;
+      paper.questions.forEach(q => {
+        if (q.type === 'text') {
+          const resp = q.responses || {};
+          for (let uid in resp) {
+            if (resp[uid] !== 'CORRECT_TEXT' && resp[uid] !== 'WRONG_TEXT') {
+              hasUngradedText = true;
+            }
+          }
+        }
+      });
+
+      if (hasUngradedText) {
+        showToast('Cannot publish! Some text responses are still ungraded.');
+        return;
+      }
+
+      publishingPaperId = paperId;
+      const container = document.getElementById('publish-result-list-container');
+      container.innerHTML = '';
+
+      const subs = paper.paperSubmissions || {};
+      let subsArr = Object.keys(subs).map(uid => ({
+        uid: uid,
+        score: subs[uid].score || 0,
+        ...userProfilesMap[uid]
+      })).sort((a, b) => b.score - a.score);
+
+      if (subsArr.length === 0) {
+        container.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:15px;">No student submissions to publish.</div>';
+      } else {
+        subsArr.forEach((s, idx) => {
+          container.innerHTML += `
+            <div class="seen-list-item">
+              <span style="font-weight:800; width:24px; color:var(--text-muted);">#${idx + 1}</span>
+              <img src="${s.dp || 'https://api.dicebear.com/7.x/micah/svg?seed=User'}" class="seen-list-avatar">
+              <div style="flex:1;">
+                <div style="font-size:0.9rem; font-weight:800; color:var(--text-dark);">${s.name || 'Student'}</div>
+                <div style="font-size:0.72rem; color:var(--text-muted);">Roll: ${s.roll || 'N/A'}</div>
+              </div>
+              <div style="font-weight:800; font-size:0.85rem; color:#15803d;">${s.score} / ${paper.questions.length} pts</div>
+            </div>
+          `;
+        });
+      }
+
+      document.getElementById('publish-result-modal').style.display = 'flex';
+    }
+
+    function closePublishResultModal() {
+      document.getElementById('publish-result-modal').style.display = 'none';
+      publishingPaperId = null;
+    }
+
+    async function confirmPublishResultFinal() {
+      if (!publishingPaperId) return;
+      showToast('Paper Results Published Successfully!');
+      closePublishResultModal();
+    }
+
+    async function deletePaperSet(paperId) {
+      const paperToDelete = papersList.find(p => p.id === paperId);
+      if (paperToDelete && paperToDelete.paperSubmissions) {
+        for (let uid in paperToDelete.paperSubmissions) {
+          const subObj = paperToDelete.paperSubmissions[uid];
+          const awardedPts = subObj.score || 0;
+          if (userProfilesMap[uid]) {
+            userProfilesMap[uid].score = Math.max(0, (userProfilesMap[uid].score || 0) - awardedPts);
+          }
+        }
+        await fetch(`${FIREBASE_URL}/UsersMap.json`, { method: 'PUT', body: JSON.stringify(userProfilesMap) });
+      }
+
+      papersList = papersList.filter(p => p.id !== paperId);
+      await fetch(`${FIREBASE_URL}/Papers.json`, { method: 'PUT', body: JSON.stringify(papersList) });
+      showToast('Paper Set Deleted & Scores Rolled Back!');
+      renderPapersList();
+    }
+
+    let activeReviewPaperId = null;
+    let activeReviewQIdx = null;
+    let activeReviewUid = null;
+
+    function openTextAnswerReview(paperId, qIdx, uid, studentAnswerText) {
+      activeReviewPaperId = paperId;
+      activeReviewQIdx = qIdx;
+      activeReviewUid = uid;
+
+      const uProf = userProfilesMap[uid] || { name: 'Student' };
+      document.getElementById('tar-student-name').innerText = `Student: ${uProf.name}`;
+      document.getElementById('tar-student-answer').innerText = studentAnswerText || '(No Answer)';
+      document.getElementById('tar-award-score').value = 1;
+
+      document.getElementById('text-answer-review-modal').style.display = 'flex';
+    }
+
+    function closeTextAnswerModal() {
+      document.getElementById('text-answer-review-modal').style.display = 'none';
+      activeReviewPaperId = null;
+      activeReviewQIdx = null;
+      activeReviewUid = null;
+    }
+
+    async function submitTextAnswerEvaluation(isCorrect) {
+      if (!activeReviewPaperId) return;
+      const awardPts = isCorrect ? (parseInt(document.getElementById('tar-award-score').value) || 1) : 0;
+
+      const paper = papersList.find(p => p.id === activeReviewPaperId);
+      if (!paper) return;
+
+      const q = paper.questions[activeReviewQIdx];
+      if (!q.responses) q.responses = {};
+      q.responses[activeReviewUid] = isCorrect ? 'CORRECT_TEXT' : 'WRONG_TEXT';
+
+      if (userProfilesMap[activeReviewUid]) {
+        userProfilesMap[activeReviewUid].score = (userProfilesMap[activeReviewUid].score || 0) + awardPts;
+        await fetch(`${FIREBASE_URL}/UsersMap/${activeReviewUid}.json`, { method: 'PUT', body: JSON.stringify(userProfilesMap[activeReviewUid]) });
+      }
+
+      await fetch(`${FIREBASE_URL}/Papers.json`, { method: 'PUT', body: JSON.stringify(papersList) });
+      showToast(isCorrect ? 'Marked Correct & Score Awarded!' : 'Marked Incorrect!');
+      closeTextAnswerModal();
+      showPaperQuestionGraph(activeReviewPaperId, activeReviewQIdx);
+    }
+
+    function showPaperQuestionGraph(paperId, qIdx) {
+      const paper = papersList.find(p => p.id === paperId);
+      if (!paper) return;
+      const q = paper.questions[qIdx];
+      const container = document.getElementById('responses-list-container');
+      document.getElementById('responses-modal-title').innerText = `${paper.title} - Q${qIdx+1}`;
+
+      if (q.type === 'text') {
+        const respObj = q.responses || {};
+        const voterIds = Object.keys(respObj);
+        if (voterIds.length === 0) {
+          container.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:15px;">No text submissions yet.</div>';
+        } else {
+          let listHtml = `<div style="font-size:0.8rem; font-weight:700; margin-bottom:10px; color:var(--text-dark);">Text Submissions (Blue tick = pending grading):</div>`;
+          voterIds.forEach(uid => {
+            const uProf = userProfilesMap[uid] || { name: 'Student', roll: 'N/A' };
+            const subAns = respObj[uid];
+            const isPending = (subAns !== 'CORRECT_TEXT' && subAns !== 'WRONG_TEXT');
+
+            listHtml += `
+              <div class="seen-list-item" onclick="openTextAnswerReview('${paperId}', ${qIdx}, '${uid}', '${subAns}')" style="cursor:pointer;">
+                <img src="${uProf.dp || 'https://api.dicebear.com/7.x/micah/svg?seed=User'}" class="seen-list-avatar">
+                <div style="flex:1;">
+                  <div style="font-size:0.9rem; font-weight:800; color:var(--text-dark);">${uProf.name} ${isPending ? '<span style="color:#2563eb;" title="Pending Grading">🔵</span>' : ''}</div>
+                  <div style="font-size:0.75rem; color:var(--text-muted);">Answer: <strong>${isPending ? subAns : (subAns === 'CORRECT_TEXT' ? 'Approved Correct' : 'Marked Wrong')}</strong></div>
+                </div>
+                <div style="font-size:0.75rem; font-weight:800; color:#2e6618;">View Response</div>
+              </div>
+            `;
+          });
+          container.innerHTML = listHtml;
+        }
+      } else {
+        let optionStats = q.options.map((optText, idx) => {
+          let count = 0;
+          const resp = q.responses || {};
+          for (let uid in resp) {
+            if (resp[uid] === idx) count++;
+          }
+          return { text: optText, index: idx, count: count, isCorrect: (idx === q.correctIndex) };
+        });
+
+        optionStats.sort((a, b) => b.count - a.count);
+        let maxVotes = 1;
+        optionStats.forEach(st => { if (st.count > maxVotes) maxVotes = st.count; });
+
+        let graphColsHtml = '';
+        optionStats.forEach(st => {
+          const heightPercent = Math.max(12, Math.round((st.count / maxVotes) * 100));
+          const barColorClass = st.isCorrect ? 'bar-green' : 'bar-red';
+          const shortLbl = getSafeShortLabel(st.text);
+          const escapedFull = encodeURIComponent(st.text);
+
+          graphColsHtml += `
+            <div class="graph-bar-col" title="${st.text}: ${st.count} votes">
+              <div class="graph-bar-value">${st.count}</div>
+              <div class="graph-building-bar ${barColorClass}" style="height: ${heightPercent}%;" onclick="showPaperOptionVoters('${paperId}', ${qIdx}, ${st.index})"></div>
+              <div class="graph-bar-label" onclick="showFullOptionPopup(decodeURIComponent('${escapedFull}'))">${shortLbl} ${st.isCorrect ? '✅' : ''}</div>
+            </div>
+          `;
+        });
+
+        container.innerHTML = `
+          <div style="font-weight:800; font-size:0.85rem; margin-bottom:8px; color:var(--text-dark);">${q.question}</div>
+          <div class="graph-container" style="height:160px; margin-bottom:15px;">${graphColsHtml}</div>
+        `;
+      }
+      document.getElementById('responses-modal').style.display = 'flex';
+    }
+
+    function showPaperOptionVoters(paperId, qIdx, optIdx) {
+      const paper = papersList.find(p => p.id === paperId);
+      if (!paper) return;
+      const q = paper.questions[qIdx];
+      const optText = q.options[optIdx];
+      const isCorrect = (optIdx === q.correctIndex);
+      const container = document.getElementById('responses-list-container');
+      document.getElementById('responses-modal-title').innerText = `Voters for: "${optText}"`;
+      container.innerHTML = '';
+
+      const respObj = q.responses || {};
+      const matchingUids = Object.keys(respObj).filter(uid => respObj[uid] === optIdx);
+
+      if (matchingUids.length === 0) {
+        container.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:15px;">No students selected this option.</div>';
+      } else {
+        matchingUids.forEach(uid => {
+          const uProf = userProfilesMap[uid] || { name: 'Student', roll: 'N/A', classVal: 'N/A', board: 'N/A', dp: 'https://api.dicebear.com/7.x/bottts/svg?seed=User' };
+          container.innerHTML += `
+            <div class="seen-list-item" onclick="showUserModalFromProfile('${uid}')" style="cursor:pointer;">
+              <img src="${uProf.dp}" class="seen-list-avatar">
+              <div style="flex:1;">
+                <div style="font-size:0.9rem; font-weight:800; color:var(--text-dark);">${uProf.name}</div>
+                <div style="font-size:0.72rem; color:var(--text-muted);">Roll: ${uProf.roll || 'N/A'} | ${uProf.classVal || 'N/A'}</div>
+              </div>
+              <div style="font-size:0.72rem; font-weight:800; color:${isCorrect ? '#15803d':'#b91c1c'};">${isCorrect ? 'Correct':'Wrong'}</div>
+            </div>
+          `;
+        });
+      }
+      document.getElementById('responses-modal').style.display = 'flex';
+    }
+
+    function showPaperScoresGraph(paperId) {
+      const paper = papersList.find(p => p.id === paperId);
+      if (!paper) return;
+      const container = document.getElementById('responses-list-container');
+      document.getElementById('responses-modal-title').innerText = `Scores Leaderboard: ${paper.title}`;
+
+      const subs = paper.paperSubmissions || {};
+      let subsArr = Object.keys(subs).map(uid => ({
+        uid: uid,
+        score: subs[uid].score || 0,
+        ...userProfilesMap[uid]
+      })).sort((a, b) => b.score - a.score);
+
+      if (subsArr.length === 0) {
+        container.innerHTML = `
+          <div style="text-align:center; padding:25px;">
+            <div style="font-size:2.2rem; color:var(--text-muted); margin-bottom:8px;"><i class="fa-solid fa-chart-column"></i></div>
+            <div style="font-size:0.9rem; font-weight:800; color:var(--text-dark);">Zero Submissions Yet</div>
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">Graph is at zero state until students participate.</div>
+          </div>
+        `;
+      } else {
+        let listHtml = '';
+        subsArr.forEach((s, idx) => {
+          listHtml += `
+            <div class="seen-list-item" onclick="showUserModalFromProfile('${s.uid}')" style="cursor:pointer;">
+              <span style="font-weight:800; width:24px; color:var(--text-muted);">#${idx + 1}</span>
+              <img src="${s.dp || 'https://api.dicebear.com/7.x/micah/svg?seed=User'}" class="seen-list-avatar">
+              <div style="flex:1;">
+                <div style="font-size:0.9rem; font-weight:800; color:var(--text-dark);">${s.name || 'Student'}</div>
+                <div style="font-size:0.72rem; color:var(--text-muted);">Roll: ${s.roll || 'N/A'}</div>
+              </div>
+              <div style="font-weight:800; font-size:0.85rem; color:#15803d;">${s.score} / ${paper.questions.length} pts</div>
+            </div>
+          `;
+        });
+        container.innerHTML = listHtml;
+      }
+      document.getElementById('responses-modal').style.display = 'flex';
+    }
+
+    /* Poll Logic */
+    function addPollOptionInput() {
+      const box = document.getElementById('poll-options-dynamic-box');
+      const count = box.querySelectorAll('.poll-opt-input-row').length;
+      if (count >= 10) { showToast('Max 10 options allowed'); return; }
+
+      const div = document.createElement('div');
+      div.className = 'poll-opt-input-row';
+      div.style.cssText = "display:flex; gap:8px; align-items:center; margin-bottom:8px;";
+      div.innerHTML = `
+        <input type="text" class="input-field poll-opt-val" placeholder="Option ${count + 1}">
+        <div class="btn-minus" onclick="this.parentElement.remove()"><i class="fa-solid fa-minus"></i></div>
+      `;
+      box.appendChild(div);
+    }
+
+    async function postPoll() {
+      const title = document.getElementById('poll-title').value.trim();
+      const optionInputs = document.querySelectorAll('.poll-opt-val');
+      let optionsArr = [];
+
+      optionInputs.forEach(i => {
+        if (i.value.trim() !== '') optionsArr.push({ text: i.value.trim(), voters: {} });
+      });
+
+      if (!title || optionsArr.length < 2) { showToast('Title and at least 2 options required'); return; }
+
+      pollsList.unshift({
+        id: 'poll_' + Date.now(),
+        title: title,
+        options: optionsArr
+      });
+
+      await fetch(`${FIREBASE_URL}/Polls.json`, { method: 'PUT', body: JSON.stringify(pollsList) });
+      showToast('Poll Published Successfully!');
+      document.getElementById('poll-title').value = '';
+      renderPollsList();
+    }
+
+    async function deletePoll(id) {
+      pollsList = pollsList.filter(p => p.id !== id);
+      await fetch(`${FIREBASE_URL}/Polls.json`, { method: 'PUT', body: JSON.stringify(pollsList) });
+      showToast('Poll Deleted');
+      renderPollsList();
+    }
+
+    function renderPollsList() {
+      const container = document.getElementById('polls-list-container');
+      container.innerHTML = '';
+      if (pollsList.length === 0) { container.innerHTML = '<div class="card">No Active Polls</div>'; return; }
+
+      pollsList.forEach(p => {
+        let totalVotes = 0;
+        let maxVotes = 1;
+        p.options.forEach(opt => {
+          const count = Object.keys(opt.voters || {}).length;
+          totalVotes += count;
+          if (count > maxVotes) maxVotes = count;
+        });
+
+        let sortedOptions = p.options.map((opt, idx) => ({ ...opt, origIndex: idx, count: Object.keys(opt.voters || {}).length }));
+        sortedOptions.sort((a, b) => b.count - a.count);
+
+        let graphColsHtml = '';
+        sortedOptions.forEach(opt => {
+          const heightPercent = Math.max(12, Math.round((opt.count / maxVotes) * 100));
+          const shortLbl = getSafeShortLabel(opt.text);
+          const escapedFull = encodeURIComponent(opt.text);
+
+          graphColsHtml += `
+            <div class="graph-bar-col" title="${opt.text}: ${opt.count} votes">
+              <div class="graph-bar-value">${opt.count}</div>
+              <div class="graph-building-bar bar-green" style="height: ${heightPercent}%;" onclick="showPollVoters('${p.id}', ${opt.origIndex})"></div>
+              <div class="graph-bar-label" onclick="showFullOptionPopup(decodeURIComponent('${escapedFull}'))">${shortLbl}</div>
+            </div>
+          `;
+        });
+
+        container.innerHTML += `
+          <div class="card">
+            <div style="font-weight:800; font-size:0.9rem; color:var(--text-dark); margin-bottom:4px;">${p.title}</div>
+            <div style="font-size:0.72rem; color:var(--text-muted); margin-bottom:8px;">Total Votes: ${totalVotes} (Tap any column to view voters)</div>
+            <div class="graph-container">
+              ${graphColsHtml}
+            </div>
+            <button class="btn-submit btn-danger" style="margin-top:12px;" onclick="deletePoll('${p.id}')"><i class="fa-solid fa-trash"></i> Delete Poll</button>
+          </div>
+        `;
+      });
+    }
+
+    function showPollVoters(pollId, optIdx) {
+      const poll = pollsList.find(p => p.id === pollId);
+      if (!poll) return;
+      const opt = poll.options[optIdx];
+      const container = document.getElementById('responses-list-container');
+      document.getElementById('responses-modal-title').innerText = `Voters for: "${opt.text}"`;
+      container.innerHTML = '';
+
+      const voterIds = Object.keys(opt.voters || {});
+      if (voterIds.length === 0) {
+        container.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:15px;">No votes for this option yet.</div>';
+      } else {
+        voterIds.forEach(uid => {
+          const uProf = userProfilesMap[uid] || { name: 'Student', roll: 'N/A', classVal: 'N/A', board: 'N/A', dp: 'https://api.dicebear.com/7.x/bottts/svg?seed=User' };
+          container.innerHTML += `
+            <div class="seen-list-item" onclick="showUserModalFromProfile('${uid}')" style="cursor:pointer;">
+              <img src="${uProf.dp}" class="seen-list-avatar">
+              <div>
+                <div style="font-size:0.9rem; font-weight:800; color:var(--text-dark);">${uProf.name}</div>
+                <div style="font-size:0.72rem; color:var(--text-muted);">Roll: ${uProf.roll} | ${uProf.classVal}</div>
+              </div>
+            </div>
+          `;
+        });
+      }
+      document.getElementById('responses-modal').style.display = 'flex';
+    }
+
+    /* Live Stream Control */
+    async function startLiveStream() {
+      const title = document.getElementById('live-stream-title').value.trim() || 'Academy Live Stream';
+      const id = document.getElementById('live-stream-id').value.trim();
+      if (!id) { showToast('Enter Video ID'); return; }
+
+      const liveObj = { title, videoId: id, date: new Date().toLocaleDateString() };
+      await fetch(`${FIREBASE_URL}/liveVideoData.json`, { method: 'PUT', body: JSON.stringify(liveObj) });
+      showToast('Live Stream Started!');
+    }
+
+    async function endLiveStream() {
+      if (currentLiveObj && currentLiveObj.videoId) {
+        const savedItem = { id: 'live_' + Date.now(), ...currentLiveObj };
+        savedLivesList.unshift(savedItem);
+        await fetch(`${FIREBASE_URL}/SavedLives.json`, { method: 'PUT', body: JSON.stringify(savedLivesList) });
+      }
+
+      await fetch(`${FIREBASE_URL}/liveVideoData.json`, { method: 'DELETE' });
+      currentLiveObj = null;
+      document.getElementById('live-stream-title').value = '';
+      document.getElementById('live-stream-id').value = '';
+
+      showToast('Live Ended & Saved to Past Classes!');
+      renderPastLivesList();
+    }
+
+    async function deleteSavedLive(id) {
+      savedLivesList = savedLivesList.filter(l => l.id !== id);
+      await fetch(`${FIREBASE_URL}/SavedLives.json`, { method: 'PUT', body: JSON.stringify(savedLivesList) });
+      showToast('Saved Live Class Deleted');
+      renderPastLivesList();
+    }
+
+    function renderPastLivesList() {
+      const container = document.getElementById('past-lives-container');
+      container.innerHTML = '';
+      if (savedLivesList.length === 0) { container.innerHTML = '<div class="card">No Recorded Live Classes Saved</div>'; return; }
+
+      savedLivesList.forEach(l => {
+        container.innerHTML += `
+          <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-weight:800; font-size:0.9rem;">${l.title}</div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">ID: ${l.videoId} | Date: ${l.date}</div>
+            </div>
+            <button class="btn-submit btn-danger" style="width:auto; margin:0;" onclick="deleteSavedLive('${l.id}')"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        `;
+      });
+    }
+
+    let pressTimer = null;
+
+    function hideAllDeleteButtons(e) {
+      if (e && e.target.closest('.msg-actions-popup')) return;
+      document.querySelectorAll('.msg-actions-popup').forEach(btn => {
+        btn.classList.remove('show');
+      });
+    }
+
+    function handleTouchStart(e, msgId) {
+      e.stopPropagation();
+      hideAllDeleteButtons();
+      pressTimer = setTimeout(() => {
+        const delBtn = document.getElementById(`actions_pop_${msgId}`);
+        if (delBtn) {
+          delBtn.classList.add('show');
+          if (navigator.vibrate) navigator.vibrate(50);
+        }
+      }, 1000);
+    }
+
+    function handleTouchEnd() {
+      if (pressTimer) {
+        clearTimeout(pressTimer);
+        pressTimer = null;
+      }
+    }
+
+    function handleChatKeyPress(e) {
+      if (e.key === 'Enter') {
+        sendAdminMessage();
+      }
+    }
+
+    async function sendAdminMessage() {
+      const input = document.getElementById('chat-input-msg');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const msgObj = {
+        msgId: 'msg_' + Date.now(),
+        senderId: adminUser.id,
+        text: text,
+        isAdmin: true,
+        isTeacher: false,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        seenBy: { [adminUser.id]: true }
+      };
+
+      currentChatList.push(msgObj);
+      renderChatMessages(currentChatList);
+      input.value = '';
+      scrollChatToBottom();
+
+      fetch(`${FIREBASE_URL}/GlobalChat.json`, { method: 'PUT', body: JSON.stringify(currentChatList) });
+    }
+
+    async function deleteChatMessage(msgId, e) {
+      if (e) e.stopPropagation();
+      currentChatList = currentChatList.filter(m => m.msgId !== msgId);
+      renderChatMessages(currentChatList);
+      await fetch(`${FIREBASE_URL}/GlobalChat.json`, { method: 'PUT', body: JSON.stringify(currentChatList) });
+      showToast('Message Deleted');
+    }
+
+    async function toggleBlockStudentUser(senderId, e) {
+      if (e) e.stopPropagation();
+      if (senderId === adminUser.id) { showToast('Cannot block Admin!'); return; }
+
+      const isCurrentlyBlocked = userProfilesMap[senderId] && userProfilesMap[senderId].isBlocked;
+      const newBlockStatus = !isCurrentlyBlocked;
+
+      if (userProfilesMap[senderId]) {
+        userProfilesMap[senderId].isBlocked = newBlockStatus;
+        await fetch(`${FIREBASE_URL}/UsersMap/${senderId}.json`, { method: 'PUT', body: JSON.stringify(userProfilesMap[senderId]) });
+      } else {
+        await fetch(`${FIREBASE_URL}/UsersMap/${senderId}/isBlocked.json`, { method: 'PUT', body: JSON.stringify(newBlockStatus) });
+      }
+
+      showToast(newBlockStatus ? 'Student Blocked!' : 'Student Unblocked!');
+      fetchData();
+    }
+
+    function renderChatMessages(messages) {
+      const container = document.getElementById('chat-messages-container');
+      container.innerHTML = '';
+
+      const sortedUsers = Object.keys(userProfilesMap).map(uid => ({
+        id: uid,
+        score: userProfilesMap[uid].score || 0
+      })).sort((a,b) => b.score - a.score);
+
+      const rankMap = {};
+      sortedUsers.forEach((u, idx) => { rankMap[u.id] = idx + 1; });
+
+      messages.forEach(msg => {
+        if (!msg) return;
+        const isMy = (msg.senderId === adminUser.id);
+        const uProf = userProfilesMap[msg.senderId] || {};
+        const rank = rankMap[msg.senderId];
+        const isBlocked = uProf.isBlocked || false;
+
+        let rankBadgeHtml = '';
+        if (rank === 1) rankBadgeHtml = '<span class="rank-badge-chat rank-1-badge">1st</span>';
+        else if (rank === 2) rankBadgeHtml = '<span class="rank-badge-chat rank-2-badge">2nd</span>';
+        else if (rank === 3) rankBadgeHtml = '<span class="rank-badge-chat rank-3-badge">3rd</span>';
+
+        let nameDisplay = msg.isAdmin ? '⭐ Ranjan Sir (Principal)' : (uProf.name || 'Student');
+        let dpDisplay = msg.isAdmin ? adminUser.dp : (uProf.dp || 'https://api.dicebear.com/7.x/bottts/svg?seed=User');
+
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `chat-message ${isMy ? 'my-message' : 'other-message'}`;
+        
+        msgDiv.innerHTML = `
+          <img src="${dpDisplay}" class="chat-avatar" onclick="showUserModalFromProfile('${msg.senderId}')">
+          <div class="chat-bubble-wrapper">
+            <div class="chat-bubble" 
+                 onmousedown="handleTouchStart(event, '${msg.msgId}')" 
+                 onmouseup="handleTouchEnd()" 
+                 onmouseleave="handleTouchEnd()" 
+                 ontouchstart="handleTouchStart(event, '${msg.msgId}')" 
+                 ontouchend="handleTouchEnd()">
+              <div style="font-size: 0.68rem; font-weight:800; opacity: 0.85; margin-bottom: 3px;">
+                ${nameDisplay} ${rankBadgeHtml}
+              </div>
+              <div>${msg.text}</div>
+            </div>
+            <div id="actions_pop_${msg.msgId}" class="msg-actions-popup">
+              <div class="action-badge-btn btn-delete-msg" onclick="deleteChatMessage('${msg.msgId}', event)">
+                <i class="fa-solid fa-trash"></i> Delete Message
+              </div>
+              ${!isMy ? `
+              <div class="action-badge-btn ${isBlocked ? 'btn-unblock-usr' : 'btn-block-usr'}" onclick="toggleBlockStudentUser('${msg.senderId}', event)">
+                <i class="fa-solid ${isBlocked ? 'fa-lock-open' : 'fa-ban'}"></i> ${isBlocked ? 'Unblock Student' : 'Block Student'}
+              </div>` : ''}
+            </div>
+          </div>
+        `;
+        container.appendChild(msgDiv);
+      });
+      scrollChatToBottom();
+    }
+
+    let currentSelectedStudentUid = null;
+    let rankHoldTimer = null;
+
+    function handleRankHoldStart(uid) {
+      rankHoldTimer = setTimeout(() => {
+        openScoreManagerModal(uid);
+      }, 800);
+    }
+
+    function handleRankHoldEnd() {
+      if (rankHoldTimer) {
+        clearTimeout(rankHoldTimer);
+        rankHoldTimer = null;
+      }
+    }
+
+    function openScoreManagerModal(uid) {
+      currentSelectedStudentUid = uid;
+      const u = userProfilesMap[uid];
+      if (!u) return;
+
+      document.getElementById('sm-name').innerText = u.name || 'Student';
+      document.getElementById('sm-roll').innerText = `Roll: ${u.roll || 'N/A'} | Class: ${u.classVal || 'N/A'}`;
+      document.getElementById('sm-score-val').value = u.score || 0;
+      document.getElementById('sm-dp').src = u.dp || 'https://api.dicebear.com/7.x/bottts/svg?seed=User';
+
+      document.getElementById('score-manager-modal').style.display = 'flex';
+    }
+
+    function closeScoreManagerModal() {
+      document.getElementById('score-manager-modal').style.display = 'none';
+    }
+
+    function adjustModalScore(delta) {
+      const scoreInput = document.getElementById('sm-score-val');
+      let currVal = parseInt(scoreInput.value) || 0;
+      currVal += delta;
+      scoreInput.value = currVal;
+    }
+
+    async function saveStudentScore() {
+      if (!currentSelectedStudentUid) return;
+      const newScore = parseInt(document.getElementById('sm-score-val').value) || 0;
+
+      if (userProfilesMap[currentSelectedStudentUid]) {
+        userProfilesMap[currentSelectedStudentUid].score = newScore;
+        await fetch(`${FIREBASE_URL}/UsersMap/${currentSelectedStudentUid}.json`, { 
+          method: 'PUT', 
+          body: JSON.stringify(userProfilesMap[currentSelectedStudentUid]) 
+        });
+        showToast('Score Updated Successfully!');
+        closeScoreManagerModal();
+        openGlobalRankingsModal();
+      }
+    }
+
+    function confirmDeleteProfilePrompt() {
+      document.getElementById('confirm-delete-modal').style.display = 'flex';
+    }
+
+    function closeConfirmDeleteModal() {
+      document.getElementById('confirm-delete-modal').style.display = 'none';
+    }
+
+    async function executeDeleteStudentProfile() {
+      if (!currentSelectedStudentUid) return;
+      const uidToDelete = currentSelectedStudentUid;
+      
+      closeConfirmDeleteModal();
+      document.getElementById('score-manager-modal').style.display = 'none';
+      
+      await fetch(`${FIREBASE_URL}/UsersMap/${uidToDelete}.json`, { method: 'DELETE' });
+      
+      delete userProfilesMap[uidToDelete];
+      currentSelectedStudentUid = null;
+      
+      showToast('Profile Permanently Deleted from Firebase!');
+      openGlobalRankingsModal();
+    }
+
+    function openGlobalRankingsModal() {
+      const container = document.getElementById('rankings-list-container');
+      container.innerHTML = '';
+
+      const usersArr = Object.keys(userProfilesMap).map(uid => ({
+        id: uid,
+        score: userProfilesMap[uid].score || 0,
+        ...userProfilesMap[uid]
+      })).sort((a, b) => b.score - a.score);
+
+      if (usersArr.length === 0) {
+        container.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:15px;">No students registered yet.</div>';
+      } else {
+        usersArr.forEach((u, idx) => {
+          container.innerHTML += `
+            <div class="seen-list-item" 
+                 onmousedown="handleRankHoldStart('${u.id}')" 
+                 onmouseup="handleRankHoldEnd()" 
+                 onmouseleave="handleRankHoldEnd()" 
+                 ontouchstart="handleRankHoldStart('${u.id}')" 
+                 ontouchend="handleRankHoldEnd()"
+                 style="cursor:pointer;">
+              <span style="font-weight:800; width:24px; color:var(--text-muted);">#${idx + 1}</span>
+              <img src="${u.dp || 'https://api.dicebear.com/7.x/micah/svg?seed=User'}" class="seen-list-avatar">
+              <div style="flex:1;">
+                <div style="font-size:0.9rem; font-weight:800; color:var(--text-dark);">${u.name}</div>
+                <div style="font-size:0.72rem; color:var(--text-muted);">Roll: ${u.roll || 'N/A'} | ${u.classVal || 'N/A'} ${u.isBlocked ? '<span style="color:#b91c1c;">(Blocked)</span>':''}</div>
+              </div>
+              <div style="font-weight:800; font-size:0.85rem; color:#15803d;">${u.score} pts</div>
+            </div>
+          `;
+        });
+      }
+      document.getElementById('rankings-modal').style.display = 'flex';
+    }
+
+    function closeRankingsModal() { document.getElementById('rankings-modal').style.display = 'none'; }
+
+    function showUserModalFromProfile(uid) {
+      if (uid === adminUser.id) return;
+      const u = userProfilesMap[uid];
+      if (!u) return;
+
+      document.getElementById('m-name').innerText = u.name;
+      document.getElementById('m-role').innerText = u.isBlocked ? 'Student (Blocked)' : 'Student';
+      document.getElementById('m-roll').innerText = u.roll || 'N/A';
+      document.getElementById('m-class').innerText = u.classVal || 'N/A';
+      document.getElementById('m-board').innerText = u.board || 'N/A';
+      document.getElementById('m-score').innerText = u.score || 0;
+      document.getElementById('m-dp').src = u.dp || 'https://api.dicebear.com/7.x/bottts/svg?seed=User';
+      document.getElementById('profile-modal').style.display = 'flex';
+    }
+
+    function closeModal() { document.getElementById('profile-modal').style.display = 'none'; }
+    function closeResponsesModal() { document.getElementById('responses-modal').style.display = 'none'; }
+  </script>
+</body>
+</html>
