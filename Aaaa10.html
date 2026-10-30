@@ -770,7 +770,6 @@ Ask me how I want to proceed now!</textarea>
   </div>
 
   <script>
-    // Updated Firebase URL
     const FIREBASE_URL = "https://live-app-bdba9-default-rtdb.firebaseio.com/";
     const TARGET_UPLOADER_URL = "https://ankeshkumar6931-ui.github.io/RNS-live/RNSadmin.html";
 
@@ -798,15 +797,12 @@ Ask me how I want to proceed now!</textarea>
       setTimeout(() => { toast.classList.remove('show'); }, 3000);
     }
 
+    // Fixed function to avoid intent:// error in App Inventor WebView
     function triggerExternalVideoUpload() {
       showToast('Opening External Video Uploader...');
       if (window.AppInventor && window.AppInventor.setWebViewString) {
         window.AppInventor.setWebViewString("OPEN_URL:" + TARGET_UPLOADER_URL);
-      }
-      const intentUrl = "intent://" + TARGET_UPLOADER_URL.replace(/^https?:\/\//, '') + "#Intent;scheme=https;package=com.android.chrome;end";
-      try {
-        window.location.href = intentUrl;
-      } catch(e) {
+      } else {
         window.open(TARGET_UPLOADER_URL, '_blank');
       }
     }
