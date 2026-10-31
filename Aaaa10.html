@@ -125,10 +125,6 @@
       z-index: 10000000000 !important;
     }
 
-    #full-option-modal {
-      z-index: 99999999999 !important;
-    }
-
     .content-area {
       flex: 1;
       overflow-y: auto;
@@ -198,6 +194,16 @@
       transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     .btn-submit:active { transform: translateY(4px) scale(0.97); }
+
+    .btn-disabled-publish {
+      background: rgba(200, 200, 200, 0.25) !important;
+      border-color: rgba(200, 200, 200, 0.4) !important;
+      color: #71717a !important;
+      opacity: 0.6;
+      cursor: not-allowed !important;
+      pointer-events: none;
+      box-shadow: none !important;
+    }
 
     .btn-upload-video {
       background: rgba(16, 185, 129, 0.85);
@@ -654,12 +660,12 @@
 
         <div class="form-group" style="text-align: left;">
           <label>Award Score (Points)</label>
-          <input type="number" id="tar-award-score" class="input-field" value="1">
+          <input type="number" id="tar-award-score" class="input-field" value="1" min="1">
         </div>
 
         <div style="display: flex; gap: 8px;">
           <button class="btn-submit btn-secondary" style="margin-top:0;" onclick="closeTextAnswerModal()">Cancel</button>
-          <button class="btn-submit" style="margin-top:0; background: rgba(16, 185, 129, 0.85); color:#fff;" onclick="submitTextAnswerEvaluation(true)">Approve / Correct</button>
+          <button id="tar-approve-btn" class="btn-submit" style="margin-top:0; background: rgba(16, 185, 129, 0.85); color:#fff;" onclick="submitTextAnswerEvaluation(true)">Approve / Correct</button>
         </div>
       </div>
     </div>
@@ -797,7 +803,6 @@ Ask me how I want to proceed now!</textarea>
       setTimeout(() => { toast.classList.remove('show'); }, 3000);
     }
 
-    // Fixed function to avoid intent:// error in App Inventor WebView
     function triggerExternalVideoUpload() {
       showToast('Opening External Video Uploader...');
       if (window.AppInventor && window.AppInventor.setWebViewString) {
@@ -1006,8 +1011,6 @@ Ask me how I want to proceed now!</textarea>
             userProfilesMap[uid].score = userProfilesMap[uid].score || 0;
             if (studentAns === quizToDelete.correctIndex) {
               userProfilesMap[uid].score -= 1;
-            } else {
-              userProfilesMap[uid].score += 1;
             }
           }
         }
@@ -1157,6 +1160,7 @@ Ask me how I want to proceed now!</textarea>
         id: 'paper_' + Date.now(),
         title: title,
         isAnswersDisabled: false,
+        isPublished: false,
         questions: parsedQuestions,
         paperSubmissions: {}
       };
@@ -1176,6 +1180,22 @@ Ask me how I want to proceed now!</textarea>
       await fetch(`${FIREBASE_URL}/Papers.json`, { method: 'PUT', body: JSON.stringify(papersList) });
       showToast(paper.isAnswersDisabled ? 'Paper Answers Locked!' : 'Paper Answers Open!');
       renderPapersList();
+    }
+
+    // कैलकुलेट केवल इसी पेपर के अंक (Calculates Paper-Specific Score)
+    function calculatePaperOnlyScore(paper, uid) {
+      let paperScore = 0;
+      paper.questions.forEach(q => {
+        const resp = q.responses ? q.responses[uid] : null;
+        if (resp !== null && resp !== undefined) {
+          if (q.type === 'mcq' && resp === q.correctIndex) {
+            paperScore += 1;
+          } else if (q.type === 'text' && typeof resp === 'object' && resp.status === 'CORRECT_TEXT') {
+            paperScore += (resp.score || 1);
+          }
+        }
+      });
+      return paperScore;
     }
 
     function renderPapersList() {
@@ -1198,8 +1218,15 @@ Ask me how I want to proceed now!</textarea>
           `;
         });
 
-        let totalSubs = Object.keys(p.paperSubmissions || {}).length;
+        // Collect all UIDs who interacted with this paper
+        let interactedUids = new Set(Object.keys(p.paperSubmissions || {}));
+        p.questions.forEach(q => {
+          if (q.responses) Object.keys(q.responses).forEach(uid => interactedUids.add(uid));
+        });
+
+        let totalSubs = interactedUids.size;
         let isDisabled = p.isAnswersDisabled || false;
+        let isPublished = p.isPublished || false;
 
         container.innerHTML += `
           <div class="card">
@@ -1212,11 +1239,15 @@ Ask me how I want to proceed now!</textarea>
             </div>
             <div style="margin: 12px 0;">${qListHtml}</div>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <button class="btn-submit" style="flex:1; min-width:130px; padding:10px; font-size:0.8rem; background:rgba(234,179,8,0.3); color:#854d0e;" onclick="showPaperScoresGraph('${p.id}')"><i class="fa-solid fa-trophy"></i> Leaderboard</button>
+              <button class="btn-submit" style="flex:1; min-width:130px; padding:10px; font-size:0.8rem; background:rgba(234,179,8,0.3); color:#854d0e;" onclick="showPaperScoresGraph('${p.id}')">
+                <i class="fa-solid fa-trophy"></i> Leaderboard
+              </button>
               <button class="btn-submit ${isDisabled ? 'btn-lock-red' : 'btn-lock-green'}" style="flex:1; min-width:130px; padding:10px; font-size:0.8rem;" onclick="togglePaperDisableAnswers('${p.id}')">
                 <i class="fa-solid ${isDisabled ? 'fa-lock' : 'fa-lock-open'}"></i> ${isDisabled ? 'Locked' : 'Unlocked'}
               </button>
-              <button class="btn-submit" style="flex:1; min-width:130px; padding:10px; font-size:0.8rem; background:rgba(59, 130, 246, 0.25); color:#1d4ed8;" onclick="openPublishResultModal('${p.id}')"><i class="fa-solid fa-bullhorn"></i> Publish Result</button>
+              <button class="btn-submit ${isPublished ? 'btn-disabled-publish' : ''}" style="flex:1; min-width:130px; padding:10px; font-size:0.8rem; background:rgba(59, 130, 246, 0.25); color:#1d4ed8;" ${isPublished ? 'disabled' : ''} onclick="openPublishResultModal('${p.id}')">
+                <i class="fa-solid fa-bullhorn"></i> ${isPublished ? 'Published' : 'Publish Result'}
+              </button>
             </div>
           </div>
         `;
@@ -1227,14 +1258,15 @@ Ask me how I want to proceed now!</textarea>
 
     function openPublishResultModal(paperId) {
       const paper = papersList.find(p => p.id === paperId);
-      if (!paper) return;
+      if (!paper || paper.isPublished) return;
 
       let hasUngradedText = false;
       paper.questions.forEach(q => {
         if (q.type === 'text') {
           const resp = q.responses || {};
           for (let uid in resp) {
-            if (resp[uid] !== 'CORRECT_TEXT' && resp[uid] !== 'WRONG_TEXT') {
+            let rVal = resp[uid];
+            if (typeof rVal !== 'object') {
               hasUngradedText = true;
             }
           }
@@ -1250,12 +1282,16 @@ Ask me how I want to proceed now!</textarea>
       const container = document.getElementById('publish-result-list-container');
       container.innerHTML = '';
 
-      const subs = paper.paperSubmissions || {};
-      let subsArr = Object.keys(subs).map(uid => ({
+      let studentUids = new Set(Object.keys(paper.paperSubmissions || {}));
+      paper.questions.forEach(q => {
+        if (q.responses) Object.keys(q.responses).forEach(uid => studentUids.add(uid));
+      });
+
+      let subsArr = Array.from(studentUids).map(uid => ({
         uid: uid,
-        score: subs[uid].score || 0,
+        paperOnlyScore: calculatePaperOnlyScore(paper, uid),
         ...userProfilesMap[uid]
-      })).sort((a, b) => b.score - a.score);
+      })).sort((a, b) => b.paperOnlyScore - a.paperOnlyScore);
 
       if (subsArr.length === 0) {
         container.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:15px;">No student submissions to publish.</div>';
@@ -1269,7 +1305,7 @@ Ask me how I want to proceed now!</textarea>
                 <div style="font-size:0.9rem; font-weight:800; color:var(--text-dark);">${s.name || 'Student'}</div>
                 <div style="font-size:0.72rem; color:var(--text-muted);">Roll: ${s.roll || 'N/A'}</div>
               </div>
-              <div style="font-weight:800; font-size:0.85rem; color:#15803d;">${s.score} / ${paper.questions.length} pts</div>
+              <div style="font-weight:800; font-size:0.85rem; color:#15803d;">${s.paperOnlyScore} pts (This Paper)</div>
             </div>
           `;
         });
@@ -1285,16 +1321,50 @@ Ask me how I want to proceed now!</textarea>
 
     async function confirmPublishResultFinal() {
       if (!publishingPaperId) return;
-      showToast('Paper Results Published Successfully!');
+
+      const paper = papersList.find(p => p.id === publishingPaperId);
+      if (paper) {
+        paper.isPublished = true;
+        paper.isAnswersDisabled = true; 
+        
+        let studentUids = new Set(Object.keys(paper.paperSubmissions || {}));
+        paper.questions.forEach(q => {
+          if (q.responses) Object.keys(q.responses).forEach(uid => studentUids.add(uid));
+        });
+
+        if (!paper.paperSubmissions) paper.paperSubmissions = {};
+
+        studentUids.forEach(uid => {
+          let paperOnlyScore = calculatePaperOnlyScore(paper, uid);
+
+          // Track earned points specifically for safe undo/rollback
+          paper.paperSubmissions[uid] = {
+            submittedAt: Date.now(),
+            earnedPoints: paperOnlyScore
+          };
+
+          if (userProfilesMap[uid]) {
+            userProfilesMap[uid].score = (userProfilesMap[uid].score || 0) + paperOnlyScore;
+          }
+        });
+
+        await fetch(`${FIREBASE_URL}/UsersMap.json`, { method: 'PUT', body: JSON.stringify(userProfilesMap) });
+        await fetch(`${FIREBASE_URL}/Papers.json`, { method: 'PUT', body: JSON.stringify(papersList) });
+      }
+
+      showToast('Paper Results Published & Scores Added to Global Ranking!');
       closePublishResultModal();
+      renderPapersList();
     }
 
     async function deletePaperSet(paperId) {
       const paperToDelete = papersList.find(p => p.id === paperId);
-      if (paperToDelete && paperToDelete.paperSubmissions) {
+      
+      // Rollback system: deduct exact earned points from this paper if published
+      if (paperToDelete && paperToDelete.isPublished && paperToDelete.paperSubmissions) {
         for (let uid in paperToDelete.paperSubmissions) {
           const subObj = paperToDelete.paperSubmissions[uid];
-          const awardedPts = subObj.score || 0;
+          const awardedPts = subObj.earnedPoints || 0;
           if (userProfilesMap[uid]) {
             userProfilesMap[uid].score = Math.max(0, (userProfilesMap[uid].score || 0) - awardedPts);
           }
@@ -1304,7 +1374,7 @@ Ask me how I want to proceed now!</textarea>
 
       papersList = papersList.filter(p => p.id !== paperId);
       await fetch(`${FIREBASE_URL}/Papers.json`, { method: 'PUT', body: JSON.stringify(papersList) });
-      showToast('Paper Set Deleted & Scores Rolled Back!');
+      showToast('Paper Set Deleted & Scores Rolled Back Safely!');
       renderPapersList();
     }
 
@@ -1317,10 +1387,32 @@ Ask me how I want to proceed now!</textarea>
       activeReviewQIdx = qIdx;
       activeReviewUid = uid;
 
+      const paper = papersList.find(p => p.id === paperId);
+      const q = paper ? paper.questions[qIdx] : null;
+      const respVal = q && q.responses ? q.responses[uid] : null;
+
+      const isAlreadyGraded = (typeof respVal === 'object' && (respVal.status === 'CORRECT_TEXT' || respVal.status === 'WRONG_TEXT'));
+
       const uProf = userProfilesMap[uid] || { name: 'Student' };
       document.getElementById('tar-student-name').innerText = `Student: ${uProf.name}`;
-      document.getElementById('tar-student-answer').innerText = studentAnswerText || '(No Answer)';
-      document.getElementById('tar-award-score').value = 1;
+      
+      // Handle Blank/Empty Text Answers cleanly
+      const isBlank = !studentAnswerText || studentAnswerText.trim() === '' || studentAnswerText === '[BLANK_ANSWER]';
+      document.getElementById('tar-student-answer').innerText = isBlank ? "(Student has not written anything / Left Blank)" : studentAnswerText;
+      document.getElementById('tar-student-answer').style.color = isBlank ? "#b91c1c" : "var(--text-dark)";
+
+      document.getElementById('tar-award-score').value = (typeof respVal === 'object' && respVal.score) ? respVal.score : 1;
+
+      const approveBtn = document.getElementById('tar-approve-btn');
+      if (isAlreadyGraded) {
+        approveBtn.classList.add('btn-disabled-publish');
+        approveBtn.innerText = 'Already Approved / Graded';
+        approveBtn.style.pointerEvents = 'none';
+      } else {
+        approveBtn.classList.remove('btn-disabled-publish');
+        approveBtn.innerText = 'Approve / Correct';
+        approveBtn.style.pointerEvents = 'auto';
+      }
 
       document.getElementById('text-answer-review-modal').style.display = 'flex';
     }
@@ -1334,22 +1426,32 @@ Ask me how I want to proceed now!</textarea>
 
     async function submitTextAnswerEvaluation(isCorrect) {
       if (!activeReviewPaperId) return;
-      const awardPts = isCorrect ? (parseInt(document.getElementById('tar-award-score').value) || 1) : 0;
 
       const paper = papersList.find(p => p.id === activeReviewPaperId);
       if (!paper) return;
 
       const q = paper.questions[activeReviewQIdx];
       if (!q.responses) q.responses = {};
-      q.responses[activeReviewUid] = isCorrect ? 'CORRECT_TEXT' : 'WRONG_TEXT';
 
-      if (userProfilesMap[activeReviewUid]) {
-        userProfilesMap[activeReviewUid].score = (userProfilesMap[activeReviewUid].score || 0) + awardPts;
-        await fetch(`${FIREBASE_URL}/UsersMap/${activeReviewUid}.json`, { method: 'PUT', body: JSON.stringify(userProfilesMap[activeReviewUid]) });
-      }
+      const customScore = parseInt(document.getElementById('tar-award-score').value) || 1;
+      const originalAnswerText = typeof q.responses[activeReviewUid] === 'object' ? q.responses[activeReviewUid].text : (q.responses[activeReviewUid] || "");
+
+      // Store evaluation object with custom points awarded
+      q.responses[activeReviewUid] = {
+        text: originalAnswerText,
+        status: isCorrect ? 'CORRECT_TEXT' : 'WRONG_TEXT',
+        score: isCorrect ? customScore : 0
+      };
 
       await fetch(`${FIREBASE_URL}/Papers.json`, { method: 'PUT', body: JSON.stringify(papersList) });
-      showToast(isCorrect ? 'Marked Correct & Score Awarded!' : 'Marked Incorrect!');
+      
+      showToast(isCorrect ? `Approved with ${customScore} Point(s)!` : 'Marked Incorrect!');
+      
+      const approveBtn = document.getElementById('tar-approve-btn');
+      approveBtn.classList.add('btn-disabled-publish');
+      approveBtn.innerText = 'Already Approved / Graded';
+      approveBtn.style.pointerEvents = 'none';
+
       closeTextAnswerModal();
       showPaperQuestionGraph(activeReviewPaperId, activeReviewQIdx);
     }
@@ -1370,15 +1472,22 @@ Ask me how I want to proceed now!</textarea>
           let listHtml = `<div style="font-size:0.8rem; font-weight:700; margin-bottom:10px; color:var(--text-dark);">Text Submissions (Blue tick = pending grading):</div>`;
           voterIds.forEach(uid => {
             const uProf = userProfilesMap[uid] || { name: 'Student', roll: 'N/A' };
-            const subAns = respObj[uid];
-            const isPending = (subAns !== 'CORRECT_TEXT' && subAns !== 'WRONG_TEXT');
+            const rawSub = respObj[uid];
+            
+            let ansText = typeof rawSub === 'object' ? rawSub.text : rawSub;
+            let status = typeof rawSub === 'object' ? rawSub.status : 'PENDING';
+            let points = typeof rawSub === 'object' ? rawSub.score : 0;
+            
+            const isPending = (status !== 'CORRECT_TEXT' && status !== 'WRONG_TEXT');
+            const isBlank = !ansText || ansText.trim() === '' || ansText === '[BLANK_ANSWER]';
+            let displayText = isBlank ? "(Student has not written anything / Left Blank)" : ansText;
 
             listHtml += `
-              <div class="seen-list-item" onclick="openTextAnswerReview('${paperId}', ${qIdx}, '${uid}', '${subAns}')" style="cursor:pointer;">
+              <div class="seen-list-item" onclick="openTextAnswerReview('${paperId}', ${qIdx}, '${uid}', '${encodeURIComponent(ansText || '')}')" style="cursor:pointer;">
                 <img src="${uProf.dp || 'https://api.dicebear.com/7.x/micah/svg?seed=User'}" class="seen-list-avatar">
                 <div style="flex:1;">
                   <div style="font-size:0.9rem; font-weight:800; color:var(--text-dark);">${uProf.name} ${isPending ? '<span style="color:#2563eb;" title="Pending Grading">🔵</span>' : ''}</div>
-                  <div style="font-size:0.75rem; color:var(--text-muted);">Answer: <strong>${isPending ? subAns : (subAns === 'CORRECT_TEXT' ? 'Approved Correct' : 'Marked Wrong')}</strong></div>
+                  <div style="font-size:0.75rem; color:var(--text-muted);">Answer: <strong style="${isBlank ? 'color:#b91c1c;' : ''}">${isPending ? displayText : (status === 'CORRECT_TEXT' ? `Approved Correct (+${points} pts)` : 'Marked Wrong (0 pt)')}</strong></div>
                 </div>
                 <div style="font-size:0.75rem; font-weight:800; color:#2e6618;">View Response</div>
               </div>
@@ -1457,45 +1566,114 @@ Ask me how I want to proceed now!</textarea>
       document.getElementById('responses-modal').style.display = 'flex';
     }
 
+    // Displays ONLY the score earned from THIS specific paper set
     function showPaperScoresGraph(paperId) {
       const paper = papersList.find(p => p.id === paperId);
       if (!paper) return;
       const container = document.getElementById('responses-list-container');
-      document.getElementById('responses-modal-title').innerText = `Scores Leaderboard: ${paper.title}`;
+      document.getElementById('responses-modal-title').innerText = `Leaderboard: ${paper.title}`;
 
-      const subs = paper.paperSubmissions || {};
-      let subsArr = Object.keys(subs).map(uid => ({
+      let studentUids = new Set(Object.keys(paper.paperSubmissions || {}));
+      paper.questions.forEach(q => {
+        if (q.responses) Object.keys(q.responses).forEach(uid => studentUids.add(uid));
+      });
+
+      let subsArr = Array.from(studentUids).map(uid => ({
         uid: uid,
-        score: subs[uid].score || 0,
+        paperOnlyScore: calculatePaperOnlyScore(paper, uid),
         ...userProfilesMap[uid]
-      })).sort((a, b) => b.score - a.score);
+      })).sort((a, b) => b.paperOnlyScore - a.paperOnlyScore);
 
       if (subsArr.length === 0) {
         container.innerHTML = `
           <div style="text-align:center; padding:25px;">
             <div style="font-size:2.2rem; color:var(--text-muted); margin-bottom:8px;"><i class="fa-solid fa-chart-column"></i></div>
             <div style="font-size:0.9rem; font-weight:800; color:var(--text-dark);">Zero Submissions Yet</div>
-            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">Graph is at zero state until students participate.</div>
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">No student has submitted this paper set yet.</div>
           </div>
         `;
       } else {
         let listHtml = '';
         subsArr.forEach((s, idx) => {
           listHtml += `
-            <div class="seen-list-item" onclick="showUserModalFromProfile('${s.uid}')" style="cursor:pointer;">
+            <div class="seen-list-item" onclick="showStudentPaperDetails('${paperId}', '${s.uid}')" style="cursor:pointer;" title="Tap to view question-wise score">
               <span style="font-weight:800; width:24px; color:var(--text-muted);">#${idx + 1}</span>
               <img src="${s.dp || 'https://api.dicebear.com/7.x/micah/svg?seed=User'}" class="seen-list-avatar">
               <div style="flex:1;">
                 <div style="font-size:0.9rem; font-weight:800; color:var(--text-dark);">${s.name || 'Student'}</div>
-                <div style="font-size:0.72rem; color:var(--text-muted);">Roll: ${s.roll || 'N/A'}</div>
+                <div style="font-size:0.72rem; color:var(--text-muted);">Roll: ${s.roll || 'N/A'} (Tap for details)</div>
               </div>
-              <div style="font-weight:800; font-size:0.85rem; color:#15803d;">${s.score} / ${paper.questions.length} pts</div>
+              <div style="font-weight:800; font-size:0.85rem; color:#15803d;">${s.paperOnlyScore} pts</div>
             </div>
           `;
         });
         container.innerHTML = listHtml;
       }
       document.getElementById('responses-modal').style.display = 'flex';
+    }
+
+    function showStudentPaperDetails(paperId, uid) {
+      const paper = papersList.find(p => p.id === paperId);
+      if (!paper) return;
+      const uProf = userProfilesMap[uid] || { name: 'Student', roll: 'N/A' };
+      const container = document.getElementById('responses-list-container');
+      
+      document.getElementById('responses-modal-title').innerText = `${uProf.name} - Score Breakdown`;
+
+      let breakdownHtml = `
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px; background:rgba(255,255,255,0.6); padding:10px; border-radius:14px; border:1px solid var(--card-border);">
+          <img src="${uProf.dp || 'https://api.dicebear.com/7.x/micah/svg?seed=User'}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+          <div>
+            <div style="font-size:0.88rem; font-weight:800; color:var(--text-dark);">${uProf.name}</div>
+            <div style="font-size:0.72rem; color:var(--text-muted);">Roll: ${uProf.roll || 'N/A'} | Class: ${uProf.classVal || 'N/A'}</div>
+          </div>
+        </div>
+        <div style="font-size:0.8rem; font-weight:800; margin-bottom:8px; color:var(--text-dark);">Question-wise Performance:</div>
+      `;
+
+      paper.questions.forEach((q, qIdx) => {
+        const studentResp = q.responses ? q.responses[uid] : undefined;
+        let statusText = "Not Attempted";
+        let colorStyle = "color:#71717a;";
+
+        if (q.type === 'mcq') {
+          if (studentResp !== undefined && studentResp !== null) {
+            if (studentResp === q.correctIndex) {
+              statusText = `Correct (Option ${String.fromCharCode(65 + studentResp)}) (+1 pt)`;
+              colorStyle = "color:#15803d;";
+            } else {
+              statusText = `Wrong (Option ${String.fromCharCode(65 + studentResp)}) (0 pt)`;
+              colorStyle = "color:#b91c1c;";
+            }
+          }
+        } else if (q.type === 'text') {
+          if (typeof studentResp === 'object') {
+            if (studentResp.status === 'CORRECT_TEXT') {
+              statusText = `Approved Correct (+${studentResp.score || 1} pt)`;
+              colorStyle = "color:#15803d;";
+            } else if (studentResp.status === 'WRONG_TEXT') {
+              statusText = "Marked Wrong (0 pt)";
+              colorStyle = "color:#b91c1c;";
+            }
+          } else if (studentResp) {
+            statusText = `Answer: "${studentResp}" (Pending / Ungraded)`;
+            colorStyle = "color:#2563eb;";
+          }
+        }
+
+        breakdownHtml += `
+          <div style="background:rgba(255,255,255,0.5); padding:10px 12px; border-radius:14px; margin-bottom:8px; border:1px solid var(--card-border);">
+            <div style="font-size:0.8rem; font-weight:800; color:var(--text-dark); margin-bottom:2px;">Q${qIdx+1}. ${q.question}</div>
+            <div style="font-size:0.75rem; font-weight:700; ${colorStyle}">${statusText}</div>
+          </div>
+        `;
+      });
+
+      breakdownHtml += `
+        <button class="btn-submit btn-secondary" style="margin-top:10px;" onclick="showPaperScoresGraph('${paperId}')"><i class="fa-solid fa-arrow-left"></i> Back to Leaderboard</button>
+      `;
+
+      container.innerHTML = breakdownHtml;
     }
 
     /* Poll Logic */
