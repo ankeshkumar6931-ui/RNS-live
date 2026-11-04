@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="hi">
 <head>
   <meta charset="UTF-8">
@@ -214,12 +214,12 @@
     .btn-submit:active { transform: translateY(4px) scale(0.97); }
 
     .btn-disabled-publish {
-      background: rgba(200, 200, 200, 0.25) !important;
-      border-color: rgba(200, 200, 200, 0.4) !important;
-      color: #71717a !important;
-      opacity: 0.6;
+      background: rgba(200, 200, 200, 0.35) !important;
+      border-color: rgba(180, 180, 180, 0.5) !important;
+      color: #8e8e93 !important;
+      opacity: 0.65;
       cursor: not-allowed !important;
-      pointer-events: none;
+      pointer-events: none !important;
       box-shadow: none !important;
     }
 
@@ -326,7 +326,7 @@
     }
     .chat-container::-webkit-scrollbar { display: none; }
 
-    .chat-message { display: flex; align-items: flex-end; gap: 8px; max-width: 85%; position: relative; }
+    .chat-message { display: flex; align-items: flex-end; gap: 8px; max-width: 85%; position: relative; transition: transform 0.2s ease; }
     .chat-message.my-message { align-self: flex-end; flex-direction: row-reverse; }
     .chat-message.other-message { align-self: flex-start; flex-direction: row; }
 
@@ -345,44 +345,12 @@
     .my-message .chat-bubble { background: rgba(234, 179, 8, 0.9); color: #000; font-weight: 700; border-bottom-right-radius: 4px; }
     .other-message .chat-bubble { background: rgba(255, 255, 255, 0.75); color: var(--text-dark); border-bottom-left-radius: 4px; }
 
-    /* Blocked Student Chat Bubble Faded (Non-Color) */
     .blocked-chat-bubble {
       background: rgba(200, 200, 200, 0.45) !important;
       color: #71717a !important;
       border-color: rgba(200, 200, 200, 0.6) !important;
       box-shadow: none !important;
       opacity: 0.65;
-    }
-
-    .msg-actions-popup {
-      display: none;
-      flex-direction: column;
-      gap: 4px;
-      margin-top: 6px;
-      align-self: flex-start;
-      animation: fadeIn 0.2s ease-in;
-    }
-    .my-message .msg-actions-popup { align-self: flex-end; }
-    .msg-actions-popup.show { display: flex; }
-
-    .action-badge-btn {
-      font-size: 0.72rem;
-      font-weight: 800;
-      padding: 5px 12px;
-      border-radius: 12px;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.12);
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-    }
-    .btn-delete-msg { color: #b91c1c; background: rgba(254, 226, 226, 0.95); border: 1px solid rgba(239, 68, 68, 0.5); }
-    .btn-block-usr { color: #854d0e; background: rgba(254, 240, 138, 0.95); border: 1px solid rgba(234, 179, 8, 0.6); }
-    .btn-unblock-usr { color: #15803d; background: rgba(220, 252, 231, 0.95); border: 1px solid rgba(34, 197, 94, 0.6); }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.9); }
-      to { opacity: 1; transform: scale(1); }
     }
 
     .chat-input-bar {
@@ -398,6 +366,7 @@
       right: 0;
       z-index: 1000;
       box-shadow: 0 -6px 20px rgba(0,0,0,0.08);
+      flex-direction: column;
     }
     .send-btn { width: 48px; height: 48px; border-radius: 50%; background: rgba(200, 240, 210, 0.85); border: 1.5px solid rgba(255, 255, 255, 0.85); color: #1f3a2b; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
 
@@ -523,13 +492,24 @@
     }
   </style>
 </head>
-<body onclick="hideAllDeleteButtons(event)">
+<body>
 
   <div id="global-progress-bar"></div>
 
   <div id="custom-toast">
     <i class="fa-solid fa-circle-check"></i>
     <span id="toast-message">Action Completed!</span>
+  </div>
+
+  <!-- CENTER PROGRESS MODAL (0% to 100% FOR PUBLISHING) -->
+  <div id="center-progress-modal" class="modal-overlay">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <h3 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 6px;">Publishing Result...</h3>
+      <p id="publish-progress-text" style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 16px;">Syncing scores to Firebase and updating student portals (0%)...</p>
+      <div style="background: rgba(255,255,255,0.6); border-radius: 12px; height: 12px; overflow: hidden; margin-bottom: 14px; border: 1px solid var(--card-border);">
+        <div id="center-progress-fill" style="width: 0%; height: 100%; background: #15803d; transition: width 0.15s ease;"></div>
+      </div>
+    </div>
   </div>
 
   <div class="app-container">
@@ -651,18 +631,30 @@
       <div id="view-chat" class="view-section">
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 10px; background: rgba(255,255,255,0.4); border-radius: 14px; margin-bottom: 8px;">
           <span style="font-size: 0.8rem; font-weight: 800; color: var(--text-dark);"><i class="fa-solid fa-shield-halved"></i> Chat Moderation</span>
-          <button class="btn-submit" style="width: auto; padding: 5px 12px; font-size: 0.72rem; background: rgba(239, 68, 68, 0.2); color: #b91c1c; border-color: rgba(239, 68, 68, 0.4);" onclick="toggleMultiSelectMode()">
-            <i class="fa-solid fa-list-check"></i> <span id="multi-select-btn-text">Multi-Select Delete</span>
-          </button>
+          <div style="display:flex; gap:6px;">
+            <button class="btn-submit" style="width: auto; padding: 5px 10px; font-size: 0.72rem; background: rgba(234, 179, 8, 0.25); color: #854d0e; border-color: rgba(234, 179, 8, 0.4);" onclick="toggleDirectBlockMode()">
+              <i class="fa-solid fa-user-lock"></i> <span id="block-mode-btn-text">Block Mode: OFF</span>
+            </button>
+            <button class="btn-submit" style="width: auto; padding: 5px 10px; font-size: 0.72rem; background: rgba(239, 68, 68, 0.2); color: #b91c1c; border-color: rgba(239, 68, 68, 0.4);" onclick="toggleMultiSelectMode()">
+              <i class="fa-solid fa-list-check"></i> <span id="multi-select-btn-text">Multi-Select</span>
+            </button>
+          </div>
         </div>
         <div class="chat-container" id="chat-messages-container"></div>
       </div>
 
     </div>
 
+    <!-- CHAT INPUT BAR WITH REPLY PREVIEW -->
     <div id="chat-bar-wrapper" class="chat-input-bar">
-      <input type="text" id="chat-input-msg" class="input-field" placeholder="Type as Principal..." onkeypress="handleChatKeyPress(event)">
-      <button class="send-btn" type="button" onclick="sendAdminMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+      <div id="reply-preview-box" style="display:none; width:100%; background:rgba(255,255,255,0.8); padding:6px 12px; border-radius:12px; margin-bottom:6px; font-size:0.78rem; justify-content:space-between; align-items:center; border:1px solid var(--card-border);">
+        <span id="reply-preview-text" style="font-weight:700; color:var(--text-dark); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Replying to...</span>
+        <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="cancelReplyMessage()"></i>
+      </div>
+      <div style="display:flex; width:100%; gap:10px; align-items:center;">
+        <input type="text" id="chat-input-msg" class="input-field" placeholder="Type as Principal..." style="flex:1;" onkeypress="handleChatKeyPress(event)">
+        <button class="send-btn" type="button" onclick="sendAdminMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+      </div>
     </div>
 
     <!-- Full Option Text Popup Modal -->
@@ -846,12 +838,15 @@ Ask me how I want to proceed now!</textarea>
     let lastRenderedChatJson = "";
 
     let isMultiSelectMode = false;
+    let isDirectBlockMode = false;
     let selectedMessageIds = new Set();
+    let replyingToMsg = null;
+    let chatHoldTimer = null;
 
     const adminUser = {
       id: 'admin_ranjan_sir',
       name: 'Ranjan Sir',
-      dp: 'https://api.dicebear.com/7.x/bottts/svg?seed=MaleTeacherRanjanPro',
+      dp: 'https://res.cloudinary.com/vijvpsmy/image/upload/v1793725017/c8w7dvm0gwstvsjcibxh.jpg',
       isAdmin: true
     };
 
@@ -1308,7 +1303,7 @@ Ask me how I want to proceed now!</textarea>
       container.innerHTML = '';
       if (papersList.length === 0) { container.innerHTML = '<div class="card">No Paper Sets Published</div>'; return; }
 
-      papersList.forEach(p => {
+      papersList.forEach((p, index) => {
         let qListHtml = '';
         p.questions.forEach((q, qIdx) => {
           let ansCount = Object.keys(q.responses || {}).length;
@@ -1333,9 +1328,8 @@ Ask me how I want to proceed now!</textarea>
 
         let totalSubs = interactedUids.size;
         let isDisabled = p.isAnswersDisabled || false;
-        let isPublished = p.isPublished || false;
+        let isPublished = p.isPublished === true;
 
-        // Remaining Time Calculation for Admin View
         let timeStatusDisplay = "";
         if (p.expiresAt) {
           let timeLeft = p.expiresAt - Date.now();
@@ -1443,23 +1437,52 @@ Ask me how I want to proceed now!</textarea>
       publishingPaperId = null;
     }
 
+    // FIXED CONFIRM PUBLISH LOGIC WITH GUARANTEED FIREBASE REAL-TIME SYNC
     async function confirmPublishResultFinal() {
       if (!publishingPaperId) return;
 
       const confirmBtn = document.getElementById('btn-confirm-publish-final');
       confirmBtn.classList.add('btn-disabled-publish');
       confirmBtn.style.pointerEvents = 'none';
-      toggleProgressBar(true);
+
+      // Open Center Progress Modal
+      const progressModal = document.getElementById('center-progress-modal');
+      const progressFill = document.getElementById('center-progress-fill');
+      const progressText = document.getElementById('publish-progress-text');
+      
+      progressModal.style.display = 'flex';
+      progressFill.style.width = '0%';
+      progressText.innerText = "Preparing data for publishing... (10%)";
+
+      let currentProg = 10;
+      let progInterval = setInterval(() => {
+        if (currentProg < 85) {
+          currentProg += 15;
+          progressFill.style.width = currentProg + '%';
+          progressText.innerText = `Syncing scores to Firebase and updating student portals (${currentProg}%)...`;
+        }
+      }, 120);
 
       try {
-        const paper = papersList.find(p => p.id === publishingPaperId);
-        if (!paper || paper.isPublished) {
-          showToast('Result is already published!');
+        const paperIndex = papersList.findIndex(p => p.id === publishingPaperId);
+        if (paperIndex === -1) {
+          clearInterval(progInterval);
+          progressModal.style.display = 'none';
+          showToast('Paper not found!');
           closePublishResultModal();
-          toggleProgressBar(false);
           return;
         }
 
+        const paper = papersList[paperIndex];
+        if (paper.isPublished) {
+          clearInterval(progInterval);
+          progressModal.style.display = 'none';
+          showToast('Result is already published!');
+          closePublishResultModal();
+          return;
+        }
+
+        // Set Published and Disabled Flags
         paper.isPublished = true;
         paper.isAnswersDisabled = true; 
         
@@ -1483,16 +1506,30 @@ Ask me how I want to proceed now!</textarea>
           }
         });
 
+        // 1. Update entire UsersMap for global score increment
         await fetch(`${FIREBASE_URL}/UsersMap.json`, { method: 'PUT', body: JSON.stringify(userProfilesMap) });
+        
+        // 2. Update entire Papers array
         await fetch(`${FIREBASE_URL}/Papers.json`, { method: 'PUT', body: JSON.stringify(papersList) });
 
-        showToast('Paper Results Published Successfully!');
-        closePublishResultModal();
-        renderPapersList();
+        // 3. CRITICAL FIX: Directly update exact paper object and isPublished flag in Firebase
+        await fetch(`${FIREBASE_URL}/Papers/${paperIndex}.json`, { method: 'PUT', body: JSON.stringify(paper) });
+
+        clearInterval(progInterval);
+        progressFill.style.width = '100%';
+        progressText.innerText = "Published Successfully! (100%)";
+
+        setTimeout(() => {
+          progressModal.style.display = 'none';
+          showToast('Paper Results Published Successfully!');
+          closePublishResultModal();
+          renderPapersList();
+        }, 400);
+
       } catch (e) {
+        clearInterval(progInterval);
+        progressModal.style.display = 'none';
         showToast('Error syncing with Firebase!');
-      } finally {
-        toggleProgressBar(false);
         confirmBtn.classList.remove('btn-disabled-publish');
         confirmBtn.style.pointerEvents = 'auto';
       }
@@ -1689,7 +1726,7 @@ Ask me how I want to proceed now!</textarea>
         container.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:15px;">No students selected this option.</div>';
       } else {
         matchingUids.forEach(uid => {
-          const uProf = userProfilesMap[uid] || { name: 'Student', roll: 'N/A', classVal: 'N/A', board: 'N/A', dp: 'https://api.dicebear.com/7.x/bottts/svg?seed=User' };
+          const uProf = userProfilesMap[uid] || { name: 'Student', roll: 'N/A', classVal: 'N/A', board: 'N/A', dp: 'https://api.dicebear.com/7.x/micah/svg?seed=User' };
           container.innerHTML += `
             <div class="seen-list-item" onclick="showUserModalFromProfile('${uid}')" style="cursor:pointer;">
               <img src="${uProf.dp}" class="seen-list-avatar">
@@ -1918,7 +1955,7 @@ Ask me how I want to proceed now!</textarea>
         container.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:15px;">No votes for this option yet.</div>';
       } else {
         voterIds.forEach(uid => {
-          const uProf = userProfilesMap[uid] || { name: 'Student', roll: 'N/A', classVal: 'N/A', board: 'N/A', dp: 'https://api.dicebear.com/7.x/bottts/svg?seed=User' };
+          const uProf = userProfilesMap[uid] || { name: 'Student', roll: 'N/A', classVal: 'N/A', board: 'N/A', dp: 'https://api.dicebear.com/7.x/micah/svg?seed=User' };
           container.innerHTML += `
             <div class="seen-list-item" onclick="showUserModalFromProfile('${uid}')" style="cursor:pointer;">
               <img src="${uProf.dp}" class="seen-list-avatar">
@@ -1985,62 +2022,79 @@ Ask me how I want to proceed now!</textarea>
       });
     }
 
-    let pressTimer = null;
-
-    function hideAllDeleteButtons(e) {
-      if (e && (e.target.closest('.msg-actions-popup') || e.target.closest('#batch-delete-action-bar'))) return;
-      document.querySelectorAll('.msg-actions-popup').forEach(btn => {
-        btn.classList.remove('show');
-      });
-    }
-
-    function handleTouchStart(e, msgId) {
-      if (isMultiSelectMode) return;
-      e.stopPropagation();
-      hideAllDeleteButtons();
-      pressTimer = setTimeout(() => {
-        const delBtn = document.getElementById(`actions_pop_${msgId}`);
-        if (delBtn) {
-          delBtn.classList.add('show');
-          if (navigator.vibrate) navigator.vibrate(50);
-        }
-      }, 1000);
-    }
-
-    function handleTouchEnd() {
-      if (pressTimer) {
-        clearTimeout(pressTimer);
-        pressTimer = null;
-      }
-    }
-
+    /* Chat Moderation & Reply / Swipe & Direct Block */
     function toggleMultiSelectMode() {
       isMultiSelectMode = !isMultiSelectMode;
+      isDirectBlockMode = false;
+      document.getElementById('block-mode-btn-text').innerText = "Block Mode: OFF";
       selectedMessageIds.clear();
       
       const btnText = document.getElementById('multi-select-btn-text');
       if (isMultiSelectMode) {
-        btnText.innerText = "Cancel Selection";
-        showToast('Multi-select mode enabled. Tap messages to select.');
+        btnText.innerText = "Cancel";
+        showToast('Multi-select enabled. Tap messages to select for deletion.');
       } else {
-        btnText.innerText = "Multi-Select Delete";
-        showToast('Multi-select mode disabled.');
+        btnText.innerText = "Multi-Select";
+        showToast('Multi-select disabled.');
       }
       renderChatMessages(currentChatList);
       updateBatchDeleteBar();
     }
 
-    function handleMessageItemClick(msgId, e) {
-      if (!isMultiSelectMode) return;
-      e.stopPropagation();
-      
-      if (selectedMessageIds.has(msgId)) {
-        selectedMessageIds.delete(msgId);
+    function toggleDirectBlockMode() {
+      isDirectBlockMode = !isDirectBlockMode;
+      isMultiSelectMode = false;
+      document.getElementById('multi-select-btn-text').innerText = "Multi-Select";
+      selectedMessageIds.clear();
+
+      const btnText = document.getElementById('block-mode-btn-text');
+      if (isDirectBlockMode) {
+        btnText.innerText = "Block Mode: ON";
+        showToast('Block Mode Active: Tap any student avatar or bubble to block/unblock.');
       } else {
-        selectedMessageIds.add(msgId);
+        btnText.innerText = "Block Mode: OFF";
+        showToast('Block Mode Deactivated.');
       }
-      renderChatMessages(currentChatList);
       updateBatchDeleteBar();
+    }
+
+    function handleMessageItemClick(msgId, senderId, e) {
+      if (isMultiSelectMode) {
+        e.stopPropagation();
+        if (selectedMessageIds.has(msgId)) {
+          selectedMessageIds.delete(msgId);
+        } else {
+          selectedMessageIds.add(msgId);
+        }
+        renderChatMessages(currentChatList);
+        updateBatchDeleteBar();
+        return;
+      }
+
+      if (isDirectBlockMode) {
+        e.stopPropagation();
+        if (senderId === adminUser.id) {
+          showToast('Cannot block Principal/Admin!');
+          return;
+        }
+        toggleBlockStudentUser(senderId);
+        return;
+      }
+    }
+
+    async function toggleBlockStudentUser(senderId) {
+      const isCurrentlyBlocked = userProfilesMap[senderId] && userProfilesMap[senderId].isBlocked;
+      const newBlockStatus = !isCurrentlyBlocked;
+
+      if (userProfilesMap[senderId]) {
+        userProfilesMap[senderId].isBlocked = newBlockStatus;
+        await fetch(`${FIREBASE_URL}/UsersMap/${senderId}.json`, { method: 'PUT', body: JSON.stringify(userProfilesMap[senderId]) });
+      } else {
+        await fetch(`${FIREBASE_URL}/UsersMap/${senderId}/isBlocked.json`, { method: 'PUT', body: JSON.stringify(newBlockStatus) });
+      }
+
+      showToast(newBlockStatus ? 'Student Blocked!' : 'Student Unblocked!');
+      fetchData();
     }
 
     async function executeBatchDelete() {
@@ -2054,7 +2108,7 @@ Ask me how I want to proceed now!</textarea>
         currentChatList = currentChatList.filter(m => !selectedMessageIds.has(m.msgId));
         selectedMessageIds.clear();
         isMultiSelectMode = false;
-        document.getElementById('multi-select-btn-text').innerText = "Multi-Select Delete";
+        document.getElementById('multi-select-btn-text').innerText = "Multi-Select";
         
         renderChatMessages(currentChatList);
         await fetch(`${FIREBASE_URL}/GlobalChat.json`, { method: 'PUT', body: JSON.stringify(currentChatList) });
@@ -2087,6 +2141,30 @@ Ask me how I want to proceed now!</textarea>
       }
     }
 
+    function setReplyMessage(msgId, senderName, text) {
+      replyingToMsg = { msgId, senderName, text };
+      const previewBox = document.getElementById('reply-preview-box');
+      const previewText = document.getElementById('reply-preview-text');
+      previewText.innerText = `Replying to ${senderName}: ${text}`;
+      previewBox.style.display = 'flex';
+      document.getElementById('chat-input-msg').focus();
+    }
+
+    function cancelReplyMessage() {
+      replyingToMsg = null;
+      document.getElementById('reply-preview-box').style.display = 'none';
+    }
+
+    function triggerBlueFlashEffect(msgId) {
+      const bubbleEl = document.getElementById(`bubble_${msgId}`);
+      if (bubbleEl) {
+        bubbleEl.classList.add('blue-flash');
+        setTimeout(() => {
+          bubbleEl.classList.remove('blue-flash');
+        }, 1000);
+      }
+    }
+
     function handleChatKeyPress(e) {
       if (e.key === 'Enter') {
         sendAdminMessage();
@@ -2101,13 +2179,16 @@ Ask me how I want to proceed now!</textarea>
       const msgObj = {
         msgId: 'msg_' + Date.now(),
         senderId: adminUser.id,
+        senderName: adminUser.name,
         text: text,
         isAdmin: true,
         isTeacher: false,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        timestamp: Date.now(),
+        replyTo: replyingToMsg ? { ...replyingToMsg } : null,
         seenBy: { [adminUser.id]: true }
       };
 
+      cancelReplyMessage();
       currentChatList.push(msgObj);
       renderChatMessages(currentChatList);
       input.value = '';
@@ -2116,7 +2197,7 @@ Ask me how I want to proceed now!</textarea>
       fetch(`${FIREBASE_URL}/GlobalChat.json`, { method: 'PUT', body: JSON.stringify(currentChatList) });
     }
 
-    async function deleteChatMessage(msgId, e) {
+    async function deleteSingleMessage(msgId, e) {
       if (e) e.stopPropagation();
       currentChatList = currentChatList.filter(m => m.msgId !== msgId);
       renderChatMessages(currentChatList);
@@ -2124,27 +2205,10 @@ Ask me how I want to proceed now!</textarea>
       showToast('Message Deleted');
     }
 
-    async function toggleBlockStudentUser(senderId, e) {
-      if (e) e.stopPropagation();
-      if (senderId === adminUser.id) { showToast('Cannot block Admin!'); return; }
-
-      const isCurrentlyBlocked = userProfilesMap[senderId] && userProfilesMap[senderId].isBlocked;
-      const newBlockStatus = !isCurrentlyBlocked;
-
-      if (userProfilesMap[senderId]) {
-        userProfilesMap[senderId].isBlocked = newBlockStatus;
-        await fetch(`${FIREBASE_URL}/UsersMap/${senderId}.json`, { method: 'PUT', body: JSON.stringify(userProfilesMap[senderId]) });
-      } else {
-        await fetch(`${FIREBASE_URL}/UsersMap/${senderId}/isBlocked.json`, { method: 'PUT', body: JSON.stringify(newBlockStatus) });
-      }
-
-      showToast(newBlockStatus ? 'Student Blocked!' : 'Student Unblocked!');
-      fetchData();
-    }
-
     function renderChatMessages(messages) {
       const container = document.getElementById('chat-messages-container');
       container.innerHTML = '';
+      currentChatList = messages || [];
 
       const sortedUsers = Object.keys(userProfilesMap).map(uid => ({
         id: uid,
@@ -2176,35 +2240,80 @@ Ask me how I want to proceed now!</textarea>
         let bubbleClass = "chat-bubble";
         if (isBlocked) bubbleClass += " blocked-chat-bubble";
 
+        let replyHtml = '';
+        if (msg.replyTo) {
+          replyHtml = `
+            <div onclick="triggerBlueFlashEffect('${msg.replyTo.msgId}')" style="background:rgba(0,0,0,0.08); padding:4px 8px; border-radius:8px; margin-bottom:4px; font-size:0.72rem; border-left:3px solid #15803d; cursor:pointer;">
+              <strong>Replying to ${msg.replyTo.senderName}:</strong> ${msg.replyTo.text}
+            </div>
+          `;
+        }
+
         msgDiv.innerHTML = `
-          <img src="${dpDisplay}" class="chat-avatar" onclick="showUserModalFromProfile('${msg.senderId}')">
-          <div class="chat-bubble-wrapper" onclick="handleMessageItemClick('${msg.msgId}', event)">
-            <div class="${bubbleClass}" style="${isSelected ? 'border: 2px solid #ef4444; background: rgba(239, 68, 68, 0.2);' : ''}"
-                 onmousedown="handleTouchStart(event, '${msg.msgId}')" 
-                 onmouseup="handleTouchEnd()" 
-                 onmouseleave="handleTouchEnd()" 
-                 ontouchstart="handleTouchStart(event, '${msg.msgId}')" 
-                 ontouchend="handleTouchEnd()">
+          <img src="${dpDisplay}" class="chat-avatar" onclick="handleAvatarClick('${msg.senderId}')">
+          <div class="chat-bubble-wrapper" onclick="handleMessageItemClick('${msg.msgId}', '${msg.senderId}', event)">
+            <div id="bubble_${msg.msgId}" class="${bubbleClass}" style="${isSelected ? 'border: 2px solid #ef4444; background: rgba(239, 68, 68, 0.2);' : ''}">
+              ${replyHtml}
               <div style="font-size: 0.68rem; font-weight:800; opacity: 0.85; margin-bottom: 3px;">
                 ${nameDisplay} ${rankBadgeHtml} ${isBlocked ? '<span style="color:#b91c1c;">(Blocked)</span>' : ''} ${isSelected ? '<i class="fa-solid fa-check-circle" style="color:#ef4444;"></i>' : ''}
               </div>
               <div>${msg.text}</div>
             </div>
-            <div id="actions_pop_${msg.msgId}" class="msg-actions-popup">
-              <div class="action-badge-btn btn-delete-msg" onclick="deleteChatMessage('${msg.msgId}', event)">
-                <i class="fa-solid fa-trash"></i> Delete Message
-              </div>
-              ${!isMy ? `
-              <div class="action-badge-btn ${isBlocked ? 'btn-unblock-usr' : 'btn-block-usr'}" onclick="toggleBlockStudentUser('${msg.senderId}', event)">
-                <i class="fa-solid ${isBlocked ? 'fa-lock-open' : 'fa-ban'}"></i> ${isBlocked ? 'Unblock Student' : 'Block Student'}
-              </div>` : ''}
+            <div style="display:flex; gap:6px; margin-top:4px; font-size:0.7rem; justify-content:${isMy ? 'flex-end' : 'flex-start'};">
+              <span style="color:#b91c1c; font-weight:800; cursor:pointer;" onclick="deleteSingleMessage('${msg.msgId}', event)"><i class="fa-solid fa-trash"></i> Delete</span>
+              ${!isMy ? `<span style="color:${isBlocked ? '#15803d' : '#854d0e'}; font-weight:800; cursor:pointer;" onclick="toggleBlockStudentUser('${msg.senderId}')"><i class="fa-solid ${isBlocked ? 'fa-lock-open' : 'fa-ban'}"></i> ${isBlocked ? 'Unblock' : 'Block'}</span>` : ''}
             </div>
           </div>
         `;
+
+        // Left-to-Right Swipe Reply Logic
+        let startX = 0;
+        msgDiv.addEventListener('touchstart', (e) => {
+          startX = e.touches[0].clientX;
+        });
+
+        msgDiv.addEventListener('touchend', (e) => {
+          let endX = e.changedTouches[0].clientX;
+          if (endX - startX > 50) {
+            msgDiv.style.transform = 'translateX(25px)';
+            setTimeout(() => { msgDiv.style.transform = 'translateX(0)'; }, 250);
+            setReplyMessage(msg.msgId, nameDisplay, msg.text);
+          }
+        });
+
+        // Long Press to select/delete
+        msgDiv.addEventListener('mousedown', () => {
+          chatHoldTimer = setTimeout(() => {
+            if (!isMultiSelectMode) toggleMultiSelectMode();
+            selectedMessageIds.add(msg.msgId);
+            renderChatMessages(currentChatList);
+            updateBatchDeleteBar();
+          }, 800);
+        });
+        msgDiv.addEventListener('mouseup', () => clearTimeout(chatHoldTimer));
+        msgDiv.addEventListener('touchstart', () => {
+          chatHoldTimer = setTimeout(() => {
+            if (!isMultiSelectMode) toggleMultiSelectMode();
+            selectedMessageIds.add(msg.msgId);
+            renderChatMessages(currentChatList);
+            updateBatchDeleteBar();
+          }, 800);
+        });
+        msgDiv.addEventListener('touchend', () => clearTimeout(chatHoldTimer));
+
         container.appendChild(msgDiv);
       });
       scrollChatToBottom();
       updateBatchDeleteBar();
+    }
+
+    function handleAvatarClick(senderId) {
+      if (senderId === adminUser.id) return;
+      if (isDirectBlockMode) {
+        toggleBlockStudentUser(senderId);
+      } else {
+        showUserModalFromProfile(senderId);
+      }
     }
 
     let currentSelectedStudentUid = null;
