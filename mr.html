@@ -191,7 +191,6 @@
     .btn-secondary { background: rgba(185, 220, 238, 0.65); color: #1e3a8a; border-color: rgba(255,255,255,0.85); }
     .btn-warning-pill { background: rgba(234, 179, 8, 0.3); color: #854d0e; border-color: rgba(234, 179, 8, 0.5); }
 
-    /* Rank Badges on DP */
     .dp-wrapper {
       position: relative;
       display: inline-block;
@@ -284,7 +283,6 @@
     .chat-message.my-message { align-self: flex-end; flex-direction: row-reverse; }
     .chat-message.other-message { align-self: flex-start; }
     .chat-message.admin-message { align-self: flex-start; max-width: 90%; }
-    .chat-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--card-border); flex-shrink: 0; cursor: pointer; }
     .chat-bubble { padding: 12px 16px; border-radius: 22px; font-size: 0.9rem; word-break: break-word; border: 1.5px solid var(--card-border); transition: background 0.3s ease; }
     .my-message .chat-bubble { background: rgba(185, 230, 198, 0.85); color: #1f3a2b; border-bottom-right-radius: 4px; }
     .other-message .chat-bubble { background: rgba(255, 255, 255, 0.7); color: var(--text-dark); border-bottom-left-radius: 4px; }
@@ -739,10 +737,13 @@
       }
     }
 
+    // --- फिक्स किया गया एक्टिविटी स्टार्टर लिंक नेविगेशन ---
     function openDpActivityStarter() {
       const dpUrl = "https://ankeshkumar6931-ui.github.io/RNS-live/dp.html";
-      if (window.AppInventor && window.AppInventor.setWebViewString) {
-        window.AppInventor.setWebViewString("OPEN_ACTIVITY_GITHUB:" + dpUrl);
+      
+      // सीधे WebViewer को इस यूआरएल पर रीडायरेक्ट करें ताकि BeforePageLoad ब्लॉक इसे पकड़ सके
+      if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
+        window.location.href = dpUrl;
       } else {
         window.open(dpUrl, '_blank');
       }
@@ -797,7 +798,7 @@
       }
     }
 
-    // --- CRITICAL TINYDB SYNC & LOAD FIX ---
+    // --- TINYDB ऑटो सेविंग और लोडिंग लॉजिक ---
     function saveUserProfileToDb() {
       if (!currentUser) return;
       const dataStr = JSON.stringify(currentUser);
@@ -827,7 +828,6 @@
       document.getElementById('auth-modal').style.display = 'flex';
       switchAuthMode('login');
     };
-    // ----------------------------------------
 
     function initAvatarGrid() {
       const grid = document.getElementById('avatar-selector-grid');
