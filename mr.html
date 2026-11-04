@@ -527,7 +527,12 @@
           </div>
 
           <button class="btn-submit" type="button" onclick="updateUserProfile()" style="margin-top: 10px;"><i class="fa-solid fa-floppy-disk"></i> Update Profile</button>
-          <button class="btn-submit btn-secondary" type="button" onclick="openDpActivityStarter()" style="margin-top: 10px;"><i class="fa-solid fa-image"></i> Open DP Editor Link</button>
+          
+          <!-- यह लिंक क्लिक होते ही GitHub वाला DP एडिटर खोलेगा जिसे App Inventor का BeforePageLoad ब्लॉक पकड़कर Activity Starter से बाहर लॉन्च कर देगा -->
+          <a href="https://ankeshkumar6931-ui.github.io/RNS-live/dp.html" class="btn-submit btn-secondary" style="display:block; text-decoration:none; line-height:normal; margin-top:10px; padding:14px;">
+            <i class="fa-solid fa-image"></i> Open DP Editor Link
+          </a>
+
           <button class="btn-submit btn-danger" type="button" onclick="handleLogOut()" style="margin-top: 10px;"><i class="fa-solid fa-right-from-bracket"></i> Log Out</button>
         </div>
       </div>
@@ -690,7 +695,17 @@
   <script>
     const FIREBASE_URL = "https://live-app-bdba9-default-rtdb.firebaseio.com/";
 
-    let currentUser = null;
+    let currentUser = {
+      id: '',
+      name: '',
+      roll: '',
+      password: '',
+      classVal: '10th Class',
+      board: 'Bihar Board',
+      dp: 'https://api.dicebear.com/7.x/micah/svg?seed=Default',
+      score: 0
+    };
+
     let userProfilesMap = {};
     let homePosts = [];
     let papersList = [];
@@ -796,26 +811,23 @@
       }
     }
 
-    // --- ROBUST TINYDB & LOCALSTORAGE SYNC ---
+    // --- EXACT V.HTML TINYDB SYNC LOGIC ---
     function saveUserProfileToDb() {
-      if (!currentUser) return;
       const dataStr = JSON.stringify(currentUser);
-      localStorage.setItem('saved_user_profile', dataStr);
       if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
         window.AppInventor.setWebViewString(dataStr);
       } else {
         window.WebViewerString = dataStr;
       }
+      if (currentUser.id) {
+        fetch(`${FIREBASE_URL}/UsersMap/${currentUser.id}.json`, { method: 'PUT', body: JSON.stringify(currentUser) });
+      }
     }
 
     window.onload = () => {
       try {
-        let webViewData = window.WebViewerString || (window.AppInventor && typeof window.AppInventor.getWebViewString === 'function' ? window.AppInventor.getWebViewString() : null);
-        if (!webViewData || webViewData === "" || webViewData === "{}") {
-          webViewData = localStorage.getItem('saved_user_profile');
-        }
-
-        if (webViewData) {
+        const webViewData = window.WebViewerString || (window.AppInventor && typeof window.AppInventor.getWebViewString === 'function' ? window.AppInventor.getWebViewString() : null);
+        if (webViewData && webViewData !== "" && webViewData !== "{}") {
           const parsedUser = JSON.parse(webViewData);
           if (parsedUser && parsedUser.id) {
             currentUser = parsedUser;
@@ -831,7 +843,7 @@
       document.getElementById('auth-modal').style.display = 'flex';
       switchAuthMode('login');
     };
-    // ----------------------------------------
+    // --------------------------------------
 
     function initAvatarGrid() {
       const grid = document.getElementById('avatar-selector-grid');
@@ -890,8 +902,6 @@
       document.getElementById('user-badge-status').innerText = currentUser.name;
       document.getElementById('profile-preview-name').innerText = currentUser.name;
 
-      await fetch(`${FIREBASE_URL}/UsersMap/${currentUser.id}.json`, { method: 'PUT', body: JSON.stringify(currentUser) });
-      
       saveUserProfileToDb();
 
       showToast('Profile Updated & Saved Successfully!');
@@ -899,11 +909,11 @@
     }
 
     function handleLogOut() {
-      currentUser = null;
-      localStorage.removeItem('saved_user_profile');
-      document.getElementById('user-badge-status').innerText = 'Guest';
+      currentUser = { id: '', name: '', roll: '', password: '', dp: 'https://api.dicebear.com/7.x/micah/svg?seed=Default', score: 0 };
       saveUserProfileToDb();
+      document.getElementById('user-badge-status').innerText = 'Guest';
       document.getElementById('auth-modal').style.display = 'flex';
+      switchAuthMode('login');
       showToast('Logged out successfully.');
     }
 
@@ -1321,7 +1331,7 @@
     }
 
     async function answerQuiz(quizId, selectedOptIdx) {
-      if (!currentUser) { showToast('Please login first!'); return; }
+      if (!currentUser || !currentUser.id) { showToast('Please login first!'); return; }
 
       const quiz = quizzesList.find(q => q.id === quizId);
       if (!quiz) return;
@@ -1787,7 +1797,7 @@
     }
 
     async function submitFullPaperSet(isAutoSubmit = false) {
-      if (!activePaperExamId || !currentUser) return;
+      if (!activePaperExamId || !currentUser || !currentUser.id) return;
       const paper = papersList.find(p => p.id === activePaperExamId);
       if (!paper) return;
 
@@ -1893,7 +1903,7 @@
     }
 
     async function castPollVote(pollId, optIdx) {
-      if (!currentUser) return;
+      if (!currentUser || !currentUser.id) return;
       const poll = pollsList.find(p => p.id === pollId);
       if (!poll) return;
 
@@ -1957,7 +1967,7 @@
     }
 
     function openDirectChat(targetUid) {
-      if (!currentUser || currentUser.id === targetUid) return;
+      if (!currentUser || !currentUser.id || currentUser.id === targetUid) return;
       currentChatMode = 'dm';
       activeTargetUserId = targetUid;
       document.getElementById('chat-home-view').style.display = 'none';
@@ -2092,7 +2102,7 @@
     }
 
     async function toggleBlockActiveUser() {
-      if (!currentUser || !activeTargetUserId) return;
+      if (!currentUser || !currentUser.id || !activeTargetUserId) return;
       const isCurrentlyBlocked = blockedUsersMap[activeTargetUserId] === true;
 
       if (isCurrentlyBlocked) {
@@ -2112,7 +2122,7 @@
     }
 
     async function deleteActiveChat() {
-      if (!currentUser || !activeTargetUserId) return;
+      if (!currentUser || !currentUser.id || !activeTargetUserId) return;
       if (!confirm('Are you sure you want to delete this chat history?')) return;
 
       const chatId = getDirectChatId(currentUser.id, activeTargetUserId);
@@ -2221,7 +2231,7 @@
 
       messages.forEach(msg => {
         if (!msg) return;
-        const isMy = currentUser && (msg.senderId === currentUser.id);
+        const isMy = currentUser && currentUser.id && (msg.senderId === currentUser.id);
         const uProf = userProfilesMap[msg.senderId] || {};
         
         const dpDisplay = (msg.senderId === 'admin_ranjan_sir' || msg.isAdmin) ? 'https://res.cloudinary.com/vijvpsmy/image/upload/v1793725017/c8w7dvm0gwstvsjcibxh.jpg' : (uProf.dp || 'https://api.dicebear.com/7.x/micah/svg?seed=User');
@@ -2323,7 +2333,7 @@
     }
 
     async function sendChatMessage() {
-      if (!currentUser) {
+      if (!currentUser || !currentUser.id) {
         showToast('Please login first!');
         return;
       }
