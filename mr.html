@@ -784,9 +784,7 @@
           currentUser.dp = freshData.dp;
           document.getElementById('profile-preview-dp').src = currentUser.dp;
           
-          if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
-            window.AppInventor.setWebViewString(JSON.stringify(currentUser));
-          }
+          saveUserProfileToDb();
           showToast('DP Synced Successfully & Saved to TinyDB!');
         } else {
           showToast('No updated DP found on Firebase yet.');
@@ -798,6 +796,38 @@
         closeSyncDpModal();
       }
     }
+
+    // --- CRITICAL TINYDB SYNC & LOAD FIX ---
+    function saveUserProfileToDb() {
+      if (!currentUser) return;
+      const dataStr = JSON.stringify(currentUser);
+      if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
+        window.AppInventor.setWebViewString(dataStr);
+      } else {
+        window.WebViewerString = dataStr;
+      }
+    }
+
+    window.onload = () => {
+      try {
+        const webViewData = window.WebViewerString || (window.AppInventor && typeof window.AppInventor.getWebViewString === 'function' ? window.AppInventor.getWebViewString() : null);
+        if (webViewData) {
+          const parsedUser = JSON.parse(webViewData);
+          if (parsedUser && parsedUser.id) {
+            currentUser = parsedUser;
+            document.getElementById('auth-modal').style.display = 'none';
+            document.getElementById('user-badge-status').innerText = currentUser.name || 'Student';
+            populateProfileForm();
+            fetchFirebaseData();
+            return;
+          }
+        }
+      } catch (e) {}
+
+      document.getElementById('auth-modal').style.display = 'flex';
+      switchAuthMode('login');
+    };
+    // ----------------------------------------
 
     function initAvatarGrid() {
       const grid = document.getElementById('avatar-selector-grid');
@@ -858,9 +888,7 @@
 
       await fetch(`${FIREBASE_URL}/UsersMap/${currentUser.id}.json`, { method: 'PUT', body: JSON.stringify(currentUser) });
       
-      if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
-        window.AppInventor.setWebViewString(JSON.stringify(currentUser));
-      }
+      saveUserProfileToDb();
 
       showToast('Profile Updated & Saved Successfully!');
       fetchFirebaseData();
@@ -869,6 +897,7 @@
     function handleLogOut() {
       currentUser = null;
       document.getElementById('user-badge-status').innerText = 'Guest';
+      saveUserProfileToDb();
       document.getElementById('auth-modal').style.display = 'flex';
       showToast('Logged out successfully.');
     }
@@ -893,9 +922,7 @@
           document.getElementById('user-badge-status').innerText = currentUser.name;
           populateProfileForm();
           
-          if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
-            window.AppInventor.setWebViewString(JSON.stringify(currentUser));
-          }
+          saveUserProfileToDb();
 
           showToast(`Welcome back, ${currentUser.name}!`);
           fetchFirebaseData();
@@ -939,9 +966,7 @@
       document.getElementById('user-badge-status').innerText = name;
       populateProfileForm();
 
-      if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
-        window.AppInventor.setWebViewString(JSON.stringify(currentUser));
-      }
+      saveUserProfileToDb();
 
       showToast('Account created successfully!');
       fetchFirebaseData();
@@ -1565,7 +1590,6 @@
       paper.questions.forEach((q, qIdx) => {
         const studentResp = (q.responses && q.responses[uid] !== undefined) ? q.responses[uid] : storedResponses[qIdx];
         
-        // Calculate Question Score Badge (Green for positive, Red for zero/negative)
         let qScoreVal = 0;
         let isCorrectQ = false;
         if (q.type === 'mcq') {
@@ -1679,7 +1703,6 @@
           </button>
         ` : '';
 
-        // If submitted, show score badge for each question in read-only mode
         let readOnlyScoreBadge = '';
         if (isSubmitted) {
           let qEarned = 0;
@@ -2224,7 +2247,6 @@
           </div>
         `;
 
-        // Swipe only on chat-bubble with longer threshold (100px)
         const bubbleEl = msgDiv.querySelector('.chat-bubble');
         let startX = 0;
         bubbleEl.addEventListener('touchstart', (e) => {
