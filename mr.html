@@ -739,13 +739,13 @@
       }
     }
 
-    // --- ACTIVITY STARTER & GITHUB.IO LINK LOGIC (FIXED) ---
+    // --- ACTIVITY STARTER & GITHUB.IO LINK LOGIC ---
     function openDpActivityStarter() {
       const dpUrl = "https://ankeshkumar631-ui.github.io/RNS-live/dp.html";
       
-      // सीधे WebViewer को इस गिटहब URL पर नेविगेट कराएं 
-      // इससे MIT App Inventor का BeforePageLoad ब्लॉक ट्रिगर होगा और ActivityStarter चालू हो जाएगा
-      if (window.AppInventor) {
+      // यह WebViewer को सीधे गिटहब लिंक पर नेविगेट कराएगा 
+      // जिससे MIT App Inventor का BeforePageLoad ब्लॉक ट्रिगर होकर ActivityStarter को चालू कर देगा
+      if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
         window.location.href = dpUrl;
       } else {
         window.open(dpUrl, '_blank');
@@ -800,11 +800,15 @@
       }
     }
 
-    // --- TINYDB & LOCALSTORAGE SYNC ---
+    // --- TINYDB & APP INVENTOR WEBVIEW STRING SYNC (CLEAN & RELIABLE LOGIC) ---
     function saveUserProfileToDb() {
       if (!currentUser) return;
       const dataStr = JSON.stringify(currentUser);
+      
+      // लोकल स्टोरेज में भी सुरक्षित रखें
       localStorage.setItem('saved_user_profile', dataStr);
+      
+      // MIT App Inventor के WebViewerString के जरिए TinyDB में स्टोर करने के लिए भेजें
       if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
         window.AppInventor.setWebViewString(dataStr);
       } else {
@@ -812,14 +816,16 @@
       }
     }
 
+    // --- AUTO-LOGIN LOGIC ON APP START ---
     window.onload = () => {
       try {
         let webViewData = window.WebViewerString || (window.AppInventor && typeof window.AppInventor.getWebViewString === 'function' ? window.AppInventor.getWebViewString() : null);
-        if (!webViewData || webViewData === "" || webViewData === "{}" || webViewData.startsWith("OPEN_ACTIVITY")) {
+        
+        if (!webViewData || webViewData === "" || webViewData === "{}") {
           webViewData = localStorage.getItem('saved_user_profile');
         }
 
-        if (webViewData) {
+        if (webViewData && webViewData !== "{}") {
           const parsedUser = JSON.parse(webViewData);
           if (parsedUser && parsedUser.id) {
             currentUser = parsedUser;
@@ -832,6 +838,7 @@
         }
       } catch (e) {}
 
+      // अगर डेटा नहीं मिला, तो लॉगिन/साइनअप मॉडल दिखाएं
       document.getElementById('auth-modal').style.display = 'flex';
       switchAuthMode('login');
     };
@@ -894,6 +901,8 @@
       document.getElementById('profile-preview-name').innerText = currentUser.name;
 
       await fetch(`${FIREBASE_URL}/UsersMap/${currentUser.id}.json`, { method: 'PUT', body: JSON.stringify(currentUser) });
+      
+      // TinyDB में सेव करें (ऑटो-लॉगिन के लिए)
       saveUserProfileToDb();
 
       showToast('Profile Updated & Saved Successfully!');
@@ -903,8 +912,15 @@
     function handleLogOut() {
       currentUser = null;
       localStorage.removeItem('saved_user_profile');
+      
+      // TinyDB से भी डेटा साफ़ करने के लिए खाली स्ट्रिंग भेजें
+      if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
+        window.AppInventor.setWebViewString("");
+      } else {
+        window.WebViewerString = "";
+      }
+
       document.getElementById('user-badge-status').innerText = 'Guest';
-      saveUserProfileToDb();
       document.getElementById('auth-modal').style.display = 'flex';
       showToast('Logged out successfully.');
     }
@@ -928,6 +944,8 @@
           document.getElementById('auth-modal').style.display = 'none';
           document.getElementById('user-badge-status').innerText = currentUser.name;
           populateProfileForm();
+          
+          // लॉगिन होने पर TinyDB में सुरक्षित रूप से सेव करें
           saveUserProfileToDb();
 
           showToast(`Welcome back, ${currentUser.name}!`);
@@ -971,6 +989,8 @@
       document.getElementById('auth-modal').style.display = 'none';
       document.getElementById('user-badge-status').innerText = name;
       populateProfileForm();
+      
+      // नया अकाउंट बनने पर TinyDB में सेव करें ताकि दोबारा लॉगिन न मांगें
       saveUserProfileToDb();
 
       showToast('Account created successfully!');
