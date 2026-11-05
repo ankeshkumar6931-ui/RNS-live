@@ -703,7 +703,7 @@
     let currentChatMode = 'home';
     let activeTargetUserId = null;
     let blockedUsersMap = {};
-    let remoteBlockedByList = {}; // Fix for blocking check
+    let remoteBlockedByList = {};
     let allDirectChatsData = {};
 
     let isChatMultiSelect = false;
@@ -739,11 +739,14 @@
       }
     }
 
-    // --- ACTIVITY STARTER & GITHUB.IO LINK LOGIC ---
+    // --- ACTIVITY STARTER & GITHUB.IO LINK LOGIC (FIXED) ---
     function openDpActivityStarter() {
-      const dpUrl = "https://ankeshkumar6931-ui.github.io/RNS-live/dp.html";
-      if (window.AppInventor && window.AppInventor.setWebViewString) {
-        window.AppInventor.setWebViewString("OPEN_ACTIVITY_GITHUB:" + dpUrl);
+      const dpUrl = "https://ankeshkumar631-ui.github.io/RNS-live/dp.html";
+      
+      // सीधे WebViewer को इस गिटहब URL पर नेविगेट कराएं 
+      // इससे MIT App Inventor का BeforePageLoad ब्लॉक ट्रिगर होगा और ActivityStarter चालू हो जाएगा
+      if (window.AppInventor) {
+        window.location.href = dpUrl;
       } else {
         window.open(dpUrl, '_blank');
       }
@@ -812,7 +815,7 @@
     window.onload = () => {
       try {
         let webViewData = window.WebViewerString || (window.AppInventor && typeof window.AppInventor.getWebViewString === 'function' ? window.AppInventor.getWebViewString() : null);
-        if (!webViewData || webViewData === "" || webViewData === "{}") {
+        if (!webViewData || webViewData === "" || webViewData === "{}" || webViewData.startsWith("OPEN_ACTIVITY")) {
           webViewData = localStorage.getItem('saved_user_profile');
         }
 
@@ -1031,7 +1034,6 @@
           
           if (currentUser && data.BlockedUsers) {
             blockedUsersMap = data.BlockedUsers[currentUser.id] || {};
-            // Track who blocked the current user
             remoteBlockedByList = {};
             Object.keys(data.BlockedUsers).forEach(ownerId => {
               if (data.BlockedUsers[ownerId] && data.BlockedUsers[ownerId][currentUser.id]) {
@@ -1053,7 +1055,6 @@
             const chatId = getDirectChatId(currentUser.id, activeTargetUserId);
             const chatObj = allDirectChatsData[chatId];
             
-            // Fix blocking UI status for the correct user
             updateDmBlockStatusUI();
 
             if (chatObj && chatObj.messages) {
@@ -1997,13 +1998,11 @@
       fetchFirebaseData();
     }
 
-    // --- FIX FOR BLOCKING / "YOU ARE BLOCKED BY THIS USER" ISSUE ---
     function updateDmBlockStatusUI() {
       const inputRow = document.getElementById('chat-active-input-row');
       const blockedNotice = document.getElementById('chat-blocked-notice');
       if (!inputRow || !blockedNotice || !activeTargetUserId) return;
 
-      // Check if user blocked the target OR if the target blocked the current user
       const iBlockedThem = blockedUsersMap[activeTargetUserId] === true;
       const theyBlockedMe = remoteBlockedByList[activeTargetUserId] === true;
 
