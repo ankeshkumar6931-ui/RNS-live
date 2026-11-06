@@ -829,15 +829,13 @@
     }
 
     // --- AUTO-LOGIN LOGIC ON APP START ---
-    window.onload = () => {
+    function checkAndAutoLogin(webViewData) {
       try {
-        let webViewData = window.WebViewerString || (window.AppInventor && typeof window.AppInventor.getWebViewString === 'function' ? window.AppInventor.getWebViewString() : null);
-        
         if (!webViewData || webViewData === "" || webViewData === "{}") {
           webViewData = localStorage.getItem('saved_user_profile');
         }
 
-        if (webViewData && webViewData !== "{}") {
+        if (webViewData && webViewData !== "{}" && webViewData !== "") {
           const parsedUser = JSON.parse(webViewData);
           if (parsedUser && parsedUser.id) {
             currentUser = parsedUser;
@@ -845,13 +843,30 @@
             document.getElementById('user-badge-status').innerText = currentUser.name || 'Student';
             populateProfileForm();
             fetchFirebaseData();
-            return;
+            return true;
           }
         }
       } catch (e) {}
+      return false;
+    }
 
-      document.getElementById('auth-modal').style.display = 'flex';
-      switchAuthMode('login');
+    window.onload = () => {
+      let initialData = window.WebViewerString || 
+        (window.AppInventor && typeof window.AppInventor.getWebViewString === 'function' ? window.AppInventor.getWebViewString() : null);
+
+      let isLoggedIn = checkAndAutoLogin(initialData);
+
+      if (!isLoggedIn) {
+        setTimeout(() => {
+          let retryData = window.WebViewerString || 
+            (window.AppInventor && typeof window.AppInventor.getWebViewString === 'function' ? window.AppInventor.getWebViewString() : null);
+          
+          if (!checkAndAutoLogin(retryData)) {
+            document.getElementById('auth-modal').style.display = 'flex';
+            switchAuthMode('login');
+          }
+        }, 1000);
+      }
     };
 
     function initAvatarGrid() {
