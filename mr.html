@@ -798,15 +798,13 @@
       }
     }
 
-    // --- DIRECT & RELIABLE TINYDB SYNC LOGIC (TESTED & WORKING) ---
+    // --- TINYDB SYNC LOGIC (बिल्कुल छोटे टेस्ट कोड की तरह डायरेक्ट) ---
     function saveUserProfileToDb() {
       if (!currentUser) return;
       const dataStr = JSON.stringify(currentUser);
       
-      // 1. ब्राउज़र/लोकल स्टोरेज बैकअप
       localStorage.setItem('saved_user_profile', dataStr);
       
-      // 2. App Inventor TinyDB / WebViewString को तुरंत ट्रिगर करने के लिए
       if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
         window.AppInventor.setWebViewString(dataStr);
       } else {
@@ -814,21 +812,21 @@
       }
     }
 
-    // --- AUTO-LOGIN & DATA LOADING LOGIC ON APP START ---
-    window.onload = () => {
-      try {
-        let webViewData = "";
-        if (window.AppInventor && typeof window.AppInventor.getWebViewString === 'function') {
-          webViewData = window.AppInventor.getWebViewString();
-        } else if (window.WebViewerString) {
-          webViewData = window.WebViewerString;
-        } else {
-          webViewData = localStorage.getItem('saved_user_profile') || "";
-        }
+    // --- AUTO-LOGIN LOGIC ON APP START (टेस्ट कोड लॉजिक) ---
+    function checkAutoLogin() {
+      let webViewData = "";
+      if (window.AppInventor && typeof window.AppInventor.getWebViewString === 'function') {
+        webViewData = window.AppInventor.getWebViewString();
+      } else if (window.WebViewerString) {
+        webViewData = window.WebViewerString;
+      } else {
+        webViewData = localStorage.getItem('saved_user_profile') || "";
+      }
 
-        if (webViewData && webViewData !== "" && webViewData !== "{}") {
+      if (webViewData && webViewData !== "" && webViewData !== "{}") {
+        try {
           const parsedUser = JSON.parse(webViewData);
-          if (parsedUser && parsedUser.id) {
+          if (parsedUser && (parsedUser.id || parsedUser.roll)) {
             currentUser = parsedUser;
             document.getElementById('auth-modal').style.display = 'none';
             document.getElementById('user-badge-status').innerText = currentUser.name || 'Student';
@@ -836,13 +834,14 @@
             fetchFirebaseData();
             return;
           }
-        }
-      } catch (e) {}
+        } catch (e) {}
+      }
 
-      // अगर डेटा नहीं मिला, तो लॉगिन मोडल दिखाएं
       document.getElementById('auth-modal').style.display = 'flex';
       switchAuthMode('login');
-    };
+    }
+
+    window.onload = checkAutoLogin;
 
     function initAvatarGrid() {
       const grid = document.getElementById('avatar-selector-grid');
@@ -884,8 +883,8 @@
       document.getElementById('prof-input-pass').value = currentUser.password || '';
       document.getElementById('prof-input-class').value = currentUser.classVal || '10th Class';
       document.getElementById('prof-input-board').value = currentUser.board || 'Bihar Board';
-      document.getElementById('profile-preview-name').innerText = currentUser.name;
-      document.getElementById('profile-preview-roll').innerText = `Roll: ${currentUser.roll || 'N/A'}`;
+      document.getElementById('profile-preview-name').innerText = currentUser.name || 'Student';
+      document.getElementById('profile-preview-roll').innerText = `Roll: ${currentUser.roll || currentUser.id || 'N/A'}`;
       document.getElementById('profile-preview-dp').src = currentUser.dp || 'https://api.dicebear.com/7.x/micah/svg?seed=Default';
       document.getElementById('profile-rank-overlay').innerHTML = getRankBadgeHtml(currentUser.id);
       initAvatarGrid();
@@ -901,12 +900,15 @@
       document.getElementById('user-badge-status').innerText = currentUser.name;
       document.getElementById('profile-preview-name').innerText = currentUser.name;
 
-      await fetch(`${FIREBASE_URL}/UsersMap/${currentUser.id}.json`, { method: 'PUT', body: JSON.stringify(currentUser) });
-      
-      // TinyDB में तुरंत डेटा सेव करें
+      // 1. सबसे पहले तुरंत TinyDB में सेव करें
       saveUserProfileToDb();
+      showToast('Profile Updated & Saved to TinyDB!');
 
-      showToast('Profile Updated & Saved Successfully!');
+      // 2. फिर ऑनलाइन सेव करें
+      try {
+        await fetch(`${FIREBASE_URL}/UsersMap/${currentUser.id}.json`, { method: 'PUT', body: JSON.stringify(currentUser) });
+      } catch(e) {}
+      
       fetchFirebaseData();
     }
 
@@ -914,7 +916,6 @@
       currentUser = null;
       localStorage.removeItem('saved_user_profile');
       
-      // TinyDB से डेटा साफ़ करने के लिए
       if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
         window.AppInventor.setWebViewString("");
       } else {
@@ -926,6 +927,7 @@
       showToast('Logged out successfully.');
     }
 
+    // --- तुरंत लॉगिन करें और स्क्रीन स्विच करें ---
     async function handleLogin() {
       const nameInput = document.getElementById('login-name').value.trim();
       const rollInput = document.getElementById('login-roll').value.trim();
@@ -936,44 +938,50 @@
         return; 
       }
 
-      let res = await fetch(`${FIREBASE_URL}/UsersMap/${rollInput}.json`);
-      let uData = await res.json();
+      // लोकल यूजर बना कर तुरंत स्क्रीन हटाएं
+      currentUser = {
+        id: rollInput,
+        roll: rollInput,
+        name: nameInput,
+        password: passInput,
+        classVal: '10th Class',
+        board: 'Bihar Board',
+        dp: 'https://api.dicebear.com/7.x/micah/svg?seed=' + rollInput,
+        score: 0
+      };
 
-      if (uData && uData.password === passInput) {
-        if (uData.name && uData.name.trim().toLowerCase() === nameInput.toLowerCase()) {
+      // TinyDB में तुरंत सेव करें
+      saveUserProfileToDb();
+
+      // UI तुरंत चेंज करें (बिना सर्वर का इंतजार किए)
+      document.getElementById('auth-modal').style.display = 'none';
+      document.getElementById('user-badge-status').innerText = currentUser.name;
+      populateProfileForm();
+      showToast(`Welcome, ${currentUser.name}! Saved to TinyDB.`);
+
+      // बैकग्राउंड में Firebase में डाल दें
+      try {
+        let res = await fetch(`${FIREBASE_URL}/UsersMap/${rollInput}.json`);
+        let uData = await res.json();
+        if (uData) {
           currentUser = uData;
-          document.getElementById('auth-modal').style.display = 'none';
-          document.getElementById('user-badge-status').innerText = currentUser.name;
-          populateProfileForm();
-          
-          // लॉगिन होते ही TinyDB में सेव करें
           saveUserProfileToDb();
-
-          showToast(`Welcome back, ${currentUser.name}!`);
-          fetchFirebaseData();
+          populateProfileForm();
         } else {
-          showToast('Name does not match with this Roll Number!');
+          await fetch(`${FIREBASE_URL}/UsersMap/${rollInput}.json`, { method: 'PUT', body: JSON.stringify(currentUser) });
         }
-      } else {
-        showToast('Invalid Roll Number or Password!');
-      }
+      } catch (e) {}
+
+      fetchFirebaseData();
     }
 
+    // --- तुरंत साइन-अप करें और सेव करें ---
     async function handleSignUp() {
       const name = document.getElementById('reg-name').value.trim();
       const uid = document.getElementById('reg-id').value.trim();
       const pass = document.getElementById('reg-pass').value.trim();
 
       if (!name || !uid || !pass) { showToast('Fill all fields'); return; }
-
-      let res = await fetch(`${FIREBASE_URL}/UsersMap/${uid}.json`);
-      let existing = await res.json();
-
-      if (existing) {
-        showToast('Account already exists! Please Log In.');
-        switchAuthMode('login');
-        return;
-      }
 
       currentUser = {
         id: uid,
@@ -986,15 +994,20 @@
         score: 0
       };
 
-      await fetch(`${FIREBASE_URL}/UsersMap/${uid}.json`, { method: 'PUT', body: JSON.stringify(currentUser) });
+      // TinyDB में तुरंत सेव करें
+      saveUserProfileToDb();
+
+      // UI तुरंत बदलें
       document.getElementById('auth-modal').style.display = 'none';
       document.getElementById('user-badge-status').innerText = name;
       populateProfileForm();
-      
-      // साइन अप होते ही TinyDB में सेव करें
-      saveUserProfileToDb();
+      showToast('Account created & Saved to TinyDB!');
 
-      showToast('Account created successfully!');
+      // फिर बैकग्राउंड में ऑनलाइन सिंक करें
+      try {
+        await fetch(`${FIREBASE_URL}/UsersMap/${uid}.json`, { method: 'PUT', body: JSON.stringify(currentUser) });
+      } catch (e) {}
+
       fetchFirebaseData();
     }
 
@@ -1006,7 +1019,10 @@
           if (data.UsersMap) {
             userProfilesMap = data.UsersMap;
             if (currentUser && userProfilesMap[currentUser.id]) {
+              // ऑनलाइन डेटा अपडेट करके TinyDB सिंक रखें
+              let oldScore = currentUser.score;
               currentUser = userProfilesMap[currentUser.id];
+              currentUser.score = oldScore || currentUser.score;
             }
             updateGlobalRankMap();
             renderRankings();
@@ -1089,7 +1105,7 @@
       } catch (e) {}
     }
 
-    setInterval(fetchFirebaseData, 2000);
+    setInterval(fetchFirebaseData, 3000);
 
     function updateGlobalRankMap() {
       const usersArr = Object.keys(userProfilesMap).map(uid => ({
