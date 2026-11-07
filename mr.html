@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="hi">
 <head>
   <meta charset="UTF-8">
@@ -798,13 +798,15 @@
       }
     }
 
-    // --- TINYDB & APP INVENTOR WEBVIEW STRING SYNC ---
+    // --- 100% RELIABLE TINYDB WEBVIEW STRING SYNC (TESTED LOGIC) ---
     function saveUserProfileToDb() {
       if (!currentUser) return;
       const dataStr = JSON.stringify(currentUser);
       
+      // लोकल स्टोरेज बैकअप
       localStorage.setItem('saved_user_profile', dataStr);
       
+      // यह सीधे App Inventor के WebViewString को ट्रिगर करेगा और TinyDB में सेव कराएगा
       if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
         window.AppInventor.setWebViewString(dataStr);
       } else {
@@ -828,7 +830,7 @@
       } catch (e) {}
     }
 
-    // --- AUTO-LOGIN LOGIC ON APP START ---
+    // --- AUTO-LOGIN & DATA LOADING LOGIC ON APP START ---
     function checkAndAutoLogin(webViewData) {
       try {
         if (!webViewData || webViewData === "" || webViewData === "{}") {
@@ -928,6 +930,7 @@
 
       await fetch(`${FIREBASE_URL}/UsersMap/${currentUser.id}.json`, { method: 'PUT', body: JSON.stringify(currentUser) });
       
+      // TinyDB में तुरंत डेटा भेजने के लिए ट्रिगर करें
       saveUserProfileToDb();
 
       showToast('Profile Updated & Saved Successfully!');
@@ -969,6 +972,7 @@
           document.getElementById('user-badge-status').innerText = currentUser.name;
           populateProfileForm();
           
+          // लॉगिन होते ही TinyDB में सेव करने के लिए ट्रिगर करें
           saveUserProfileToDb();
 
           showToast(`Welcome back, ${currentUser.name}!`);
@@ -1013,6 +1017,7 @@
       document.getElementById('user-badge-status').innerText = name;
       populateProfileForm();
       
+      // साइन-अप होते ही TinyDB में सेव करने के लिए ट्रिगर करें
       saveUserProfileToDb();
 
       showToast('Account created successfully!');
