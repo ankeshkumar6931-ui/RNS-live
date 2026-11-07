@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Student Portal</title>
   <style>
     * {
@@ -10,6 +10,9 @@
       margin: 0;
       padding: 0;
       font-family: 'Poppins', 'Segoe UI', sans-serif;
+      -webkit-user-select: none; /* Prevent text selection on mobile/web */
+      user-select: none;
+      -webkit-touch-callout: none;
     }
 
     body {
@@ -19,34 +22,36 @@
       justify-content: center;
       align-items: center;
       padding: 20px;
-      overflow-x: hidden;
+      overflow: hidden; /* Prevent body scroll / zoom overflow */
     }
 
-    /* 3D Glassmorphism Card */
+    /* Enhanced 3D Glassmorphism Card with deep layers */
     .glass-card {
       background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      border-right: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 24px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1.5px solid rgba(255, 255, 255, 0.4);
+      border-bottom: 1.5px solid rgba(255, 255, 255, 0.15);
+      border-right: 1.5px solid rgba(255, 255, 255, 0.15);
+      border-radius: 28px;
       padding: 32px 28px;
       width: 100%;
       max-width: 380px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3),
-                  inset 0 1px 2px rgba(255, 255, 255, 0.4);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4),
+                  inset 0 2px 4px rgba(255, 255, 255, 0.6),
+                  inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+      transform: perspective(1000px);
       transition: all 0.4s ease;
     }
 
     .title {
       color: #ffffff;
       text-align: center;
-      font-size: 1.6rem;
+      font-size: 1.7rem;
       font-weight: 700;
       margin-bottom: 24px;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.2);
-      letter-spacing: 0.5px;
+      text-shadow: 0 3px 10px rgba(0,0,0,0.3);
+      letter-spacing: 0.8px;
     }
 
     .input-group {
@@ -56,25 +61,28 @@
 
     .input-group label {
       display: block;
-      color: rgba(255, 255, 255, 0.9);
+      color: rgba(255, 255, 255, 0.95);
       font-size: 0.85rem;
       font-weight: 600;
       margin-bottom: 6px;
       margin-left: 4px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.2);
     }
 
     .input-field {
       width: 100%;
-      padding: 12px 16px;
+      padding: 13px 16px;
       background: rgba(255, 255, 255, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 14px;
       font-size: 0.95rem;
       color: #ffffff;
       outline: none;
-      backdrop-filter: blur(5px);
+      backdrop-filter: blur(8px);
       transition: all 0.3s ease;
-      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.15);
+      -webkit-user-select: text; /* Allow typing input */
+      user-select: text;
     }
 
     .input-field::placeholder {
@@ -82,32 +90,31 @@
     }
 
     .input-field:focus {
-      background: rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.3);
       border-color: #38ef7d;
-      box-shadow: 0 0 12px rgba(56, 239, 125, 0.4), inset 0 2px 4px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 0 15px rgba(56, 239, 125, 0.5), inset 0 2px 5px rgba(0, 0, 0, 0.15);
     }
 
-    /* Custom Glassmorphism Dropdown UI */
+    /* Custom 3D Glass Dropdown UI */
     .custom-dropdown {
       position: relative;
-      user-select: none;
     }
 
     .select-trigger {
       width: 100%;
-      padding: 12px 16px;
+      padding: 13px 16px;
       background: rgba(255, 255, 255, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 14px;
       font-size: 0.95rem;
       color: rgba(255, 255, 255, 0.6);
       cursor: pointer;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      backdrop-filter: blur(5px);
+      backdrop-filter: blur(8px);
       transition: all 0.3s ease;
-      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.15);
     }
 
     .select-trigger.selected {
@@ -117,7 +124,7 @@
     .select-trigger:after {
       content: '▼';
       font-size: 0.75rem;
-      color: rgba(255, 255, 255, 0.8);
+      color: rgba(255, 255, 255, 0.9);
       transition: transform 0.3s ease;
     }
 
@@ -126,9 +133,9 @@
     }
 
     .custom-dropdown.open .select-trigger {
-      background: rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.3);
       border-color: #38ef7d;
-      box-shadow: 0 0 12px rgba(56, 239, 125, 0.4);
+      box-shadow: 0 0 15px rgba(56, 239, 125, 0.5);
     }
 
     .dropdown-menu {
@@ -136,12 +143,12 @@
       top: 110%;
       left: 0;
       right: 0;
-      background: rgba(13, 59, 46, 0.85);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      background: rgba(13, 59, 46, 0.95);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
       border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 12px;
-      box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+      border-radius: 14px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
       max-height: 180px;
       overflow-y: auto;
       z-index: 100;
@@ -158,7 +165,7 @@
     }
 
     .dropdown-option {
-      padding: 10px 16px;
+      padding: 12px 16px;
       color: #ffffff;
       font-size: 0.9rem;
       cursor: pointer;
@@ -166,7 +173,7 @@
     }
 
     .dropdown-option:hover {
-      background: rgba(56, 239, 125, 0.3);
+      background: rgba(56, 239, 125, 0.35);
       padding-left: 22px;
       color: #38ef7d;
     }
@@ -176,7 +183,7 @@
     }
 
     .dropdown-menu::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.4);
       border-radius: 4px;
     }
 
@@ -189,35 +196,38 @@
       -moz-appearance: textfield;
     }
 
-    /* 3D Glass Button */
+    /* 3D Deep Embossed Glass Button */
     .btn-action {
       width: 100%;
       padding: 14px;
-      margin-top: 10px;
+      margin-top: 12px;
       background: linear-gradient(135deg, #38ef7d, #11998e);
       color: #ffffff;
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 14px;
       font-size: 1rem;
       font-weight: 700;
-      letter-spacing: 1px;
+      letter-spacing: 1.2px;
       cursor: pointer;
-      box-shadow: 0 8px 20px rgba(17, 153, 142, 0.4),
-                  0 4px 0px #0d6e65;
-      transition: all 0.2s ease;
+      box-shadow: 0 10px 25px rgba(17, 153, 142, 0.5),
+                  0 5px 0px #0b544d,
+                  inset 0 2px 3px rgba(255, 255, 255, 0.6);
+      transition: all 0.15s ease;
       text-transform: uppercase;
     }
 
     .btn-action:hover {
       transform: translateY(-2px);
-      box-shadow: 0 10px 24px rgba(17, 153, 142, 0.5),
-                  0 6px 0px #0d6e65;
+      box-shadow: 0 12px 28px rgba(17, 153, 142, 0.6),
+                  0 7px 0px #0b544d,
+                  inset 0 2px 3px rgba(255, 255, 255, 0.6);
     }
 
     .btn-action:active {
-      transform: translateY(2px);
-      box-shadow: 0 4px 10px rgba(17, 153, 142, 0.4),
-                  0 2px 0px #0d6e65;
+      transform: translateY(3px);
+      box-shadow: 0 4px 12px rgba(17, 153, 142, 0.4),
+                  0 2px 0px #0b544d,
+                  inset 0 1px 2px rgba(0, 0, 0, 0.2);
     }
 
     #homePage {
@@ -227,10 +237,11 @@
 
     .profile-card {
       background: rgba(255, 255, 255, 0.1);
-      border-radius: 16px;
-      padding: 16px;
+      border-radius: 18px;
+      padding: 18px;
       margin: 20px 0;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow: inset 0 2px 5px rgba(255, 255, 255, 0.15);
     }
 
     .info-row {
@@ -254,6 +265,8 @@
     .info-value {
       font-weight: 700;
       color: #38ef7d;
+      -webkit-user-select: text;
+      user-select: text;
     }
   </style>
 </head>
@@ -323,7 +336,7 @@
       </div>
     </div>
 
-    <!-- OK Button -->
+    <!-- OK Button triggering event string for App Inventor -->
     <button type="button" class="btn-action" onclick="handleOkClick()">OK</button>
   </div>
 
@@ -364,11 +377,10 @@
         savedDataRaw = localStorage.getItem("studentData") || "";
       }
 
-      if (savedDataRaw && savedDataRaw !== "null" && savedDataRaw !== "undefined") {
+      if (savedDataRaw && savedDataRaw !== "null" && savedDataRaw !== "undefined" && savedDataRaw !== "close_screen") {
         try {
           const userData = JSON.parse(savedDataRaw);
           if (userData.name && userData.roll && userData.studentClass && userData.password) {
-            // Fill Inputs
             document.getElementById("studentName").value = userData.name;
             document.getElementById("rollNumber").value = userData.roll;
             document.getElementById("userPassword").value = userData.password;
@@ -376,11 +388,10 @@
             trigger.innerText = selectedClassValue;
             trigger.classList.add('selected');
 
-            // Show Home Page Automatically (Auto-Login)
             showHomePage(userData.name, userData.roll, userData.studentClass, userData.password);
           }
         } catch(e) {
-          console.log("Parsing error or raw text string", e);
+          console.log("Parsing error", e);
         }
       }
     }
@@ -408,7 +419,6 @@
       const userDataObj = { name, roll, studentClass: selectedClassValue, password };
       const userDataString = JSON.stringify(userDataObj);
 
-      // Send to TinyDB via AppInventor WebViewString
       if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
         window.AppInventor.setWebViewString(userDataString);
       } else {
@@ -419,18 +429,17 @@
       showHomePage(name, roll, selectedClassValue, password);
     }
 
-    // Send signal to MIT App Inventor on OK click
+    // Sends 'close_screen' signal to WebViewStringChange event without overwriting saved profile database
     function handleOkClick() {
       const signal = "close_screen";
       if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
         window.AppInventor.setWebViewString(signal);
       } else {
         window.WebViewerString = signal;
-        alert("OK tapped! Signal sent to App Inventor: " + signal);
+        alert("Signal sent to App Inventor: " + signal);
       }
     }
 
-    // Run Auto-Fill & Auto-Login check on load
     window.onload = checkSavedData;
   </script>
 
