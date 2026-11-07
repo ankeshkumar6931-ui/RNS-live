@@ -500,7 +500,7 @@
       }
     }
 
-    // Auto-load data from TinyDB / WebViewString for Auto-Fill & Auto-Login check
+    // Auto-load data from TinyDB / WebViewString for Auto-Fill and Auto-Login
     window.onload = function() {
       let savedDataRaw = "";
       if (window.AppInventor && typeof window.AppInventor.getWebViewString === 'function') {
@@ -511,7 +511,7 @@
         savedDataRaw = localStorage.getItem("studentData") || "";
       }
 
-      if (savedDataRaw && savedDataRaw !== "null" && savedDataRaw !== "undefined" && savedDataRaw !== "close_webviewer" && savedDataRaw !== "auto_login_success" && savedDataRaw !== "signin_success") {
+      if (savedDataRaw && savedDataRaw !== "null" && savedDataRaw !== "undefined" && savedDataRaw !== "close_webviewer") {
         try {
           const userData = JSON.parse(savedDataRaw);
           if (userData.roll) {
@@ -535,9 +535,9 @@
               loginTrigger.classList.add('selected');
             }
 
-            // If data is already fully present, trigger auto-login signal to hide WebViewer 1 and open WebViewer 2
+            // Sends the exact same "close_webviewer" signal on successful auto-fill
             setTimeout(() => {
-              sendInstruction("auto_login_success");
+              sendInstruction("close_webviewer");
             }, 500);
           }
         } catch(e) {
@@ -575,7 +575,6 @@
         let existingData = await response.json();
 
         if (existingData) {
-          // Strict check: if Name, Roll, Class and Password all match completely
           if (
             existingData.name.toLowerCase() === name.toLowerCase() &&
             existingData.roll.toString() === roll.toString() &&
@@ -588,7 +587,6 @@
           }
         }
 
-        // Save profile to Firebase
         const studentData = { name, roll, studentClass: createClassValue, password };
         let saveRes = await fetch(`${FIREBASE_URL}/${roll}.json`, {
           method: 'PUT',
@@ -637,7 +635,6 @@
           return;
         }
 
-        // Strict verification: Name, Roll Number, Class, and Password must match completely
         if (
           userData.roll.toString() === roll.toString() &&
           userData.name.toLowerCase() === name.toLowerCase() &&
