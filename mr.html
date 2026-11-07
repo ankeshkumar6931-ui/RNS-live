@@ -10,7 +10,7 @@
       margin: 0;
       padding: 0;
       font-family: 'Poppins', 'Segoe UI', sans-serif;
-      -webkit-user-select: none; /* Prevent text selection on mobile/web */
+      -webkit-user-select: none;
       user-select: none;
       -webkit-touch-callout: none;
     }
@@ -22,10 +22,36 @@
       justify-content: center;
       align-items: center;
       padding: 20px;
-      overflow: hidden; /* Prevent body scroll / zoom overflow */
+      overflow: hidden;
     }
 
-    /* Enhanced 3D Glassmorphism Card with deep layers */
+    /* Top Custom Popup Notification */
+    #customPopup {
+      position: fixed;
+      top: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(13, 59, 46, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(56, 239, 125, 0.5);
+      color: #ffffff;
+      padding: 12px 24px;
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      font-size: 0.9rem;
+      font-weight: 600;
+      z-index: 1000;
+      transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+
+    #customPopup.show {
+      top: 25px;
+    }
+
+    /* 3D Glassmorphism Card */
     .glass-card {
       background: rgba(255, 255, 255, 0.15);
       backdrop-filter: blur(20px);
@@ -81,7 +107,7 @@
       backdrop-filter: blur(8px);
       transition: all 0.3s ease;
       box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.15);
-      -webkit-user-select: text; /* Allow typing input */
+      -webkit-user-select: text;
       user-select: text;
     }
 
@@ -272,6 +298,9 @@
 </head>
 <body>
 
+  <!-- Top Floating Popup Notice -->
+  <div id="customPopup">Notification Message</div>
+
   <!-- SIGN IN PAGE -->
   <div class="glass-card" id="loginPage">
     <h2 class="title">Sign In</h2>
@@ -343,6 +372,16 @@
   <script>
     let selectedClassValue = "";
 
+    // Show top custom popup function
+    function showPopup(message) {
+      const popup = document.getElementById('customPopup');
+      popup.innerText = message;
+      popup.classList.add('show');
+      setTimeout(() => {
+        popup.classList.remove('show');
+      }, 3000);
+    }
+
     const dropdown = document.getElementById('customDropdown');
     const trigger = document.getElementById('selectTrigger');
     const options = document.querySelectorAll('.dropdown-option');
@@ -411,14 +450,28 @@
       const roll = document.getElementById("rollNumber").value.trim();
       const password = document.getElementById("userPassword").value.trim();
 
-      if (!name || !roll || !selectedClassValue || !password) {
-        alert("Please fill in all details before proceeding!");
+      // Validation check with popup notification
+      if (!name) {
+        showPopup("Please enter your Name!");
+        return;
+      }
+      if (!roll) {
+        showPopup("Please enter your Roll Number!");
+        return;
+      }
+      if (!selectedClassValue) {
+        showPopup("Please select your Class!");
+        return;
+      }
+      if (!password) {
+        showPopup("Please enter your Password!");
         return;
       }
 
       const userDataObj = { name, roll, studentClass: selectedClassValue, password };
       const userDataString = JSON.stringify(userDataObj);
 
+      // Save to TinyDB only during Sign In
       if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
         window.AppInventor.setWebViewString(userDataString);
       } else {
@@ -429,14 +482,14 @@
       showHomePage(name, roll, selectedClassValue, password);
     }
 
-    // Sends 'close_screen' signal to WebViewStringChange event without overwriting saved profile database
+    // Sends 'close_screen' signal to WebViewStringChange event WITHOUT touching TinyDB data
     function handleOkClick() {
       const signal = "close_screen";
       if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
         window.AppInventor.setWebViewString(signal);
       } else {
         window.WebViewerString = signal;
-        alert("Signal sent to App Inventor: " + signal);
+        showPopup("Signal sent: " + signal);
       }
     }
 
