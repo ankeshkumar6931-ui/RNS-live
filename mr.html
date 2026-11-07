@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ranjan Sir Academy - Simple Portal</title>
+  <title>Student Registration & TinyDB Saver</title>
   <style>
     * {
       box-sizing: border-box;
@@ -11,231 +11,289 @@
       padding: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
+
     body {
-      background-color: #f4f7f6;
+      background: linear-gradient(135deg, #4e54c8, #8f94fb);
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      padding: 16px;
+      padding: 20px;
     }
+
     .card {
       background: #ffffff;
-      padding: 24px;
+      padding: 28px;
       border-radius: 16px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
       width: 100%;
-      max-width: 360px;
+      max-width: 380px;
     }
+
     h2 {
-      color: #2c3e50;
-      margin-bottom: 16px;
+      color: #333333;
+      margin-bottom: 20px;
+      font-size: 1.4rem;
       text-align: center;
-      font-size: 1.3rem;
     }
-    .form-group {
-      margin-bottom: 14px;
+
+    .input-group {
+      margin-bottom: 15px;
       text-align: left;
     }
-    label {
+
+    .input-group label {
       display: block;
-      font-size: 0.85rem;
-      color: #34495e;
-      margin-bottom: 4px;
-      font-weight: bold;
+      margin-bottom: 5px;
+      font-size: 0.9rem;
+      color: #555555;
+      font-weight: 600;
     }
-    input, select {
+
+    input[type="text"],
+    input[type="number"],
+    input[type="password"],
+    select {
       width: 100%;
-      padding: 10px 12px;
-      border: 2px solid #bdc3c7;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
       border-radius: 8px;
       font-size: 0.95rem;
       outline: none;
       transition: border-color 0.3s;
+      background-color: #f9f9f9;
     }
-    input:focus, select:focus {
-      border-color: #16a085;
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    input[type="password"]:focus,
+    select:focus {
+      border-color: #4e54c8;
+      background-color: #ffffff;
     }
+
     button {
       width: 100%;
       padding: 12px;
-      background-color: #16a085;
+      background-color: #4e54c8;
       color: white;
       border: none;
       border-radius: 8px;
       font-size: 1rem;
       font-weight: bold;
       cursor: pointer;
+      transition: background-color 0.3s, transform 0.1s;
       margin-top: 10px;
     }
+
+    button:hover {
+      background-color: #3b40a4;
+    }
+
     button:active {
-      background-color: #117964;
+      transform: scale(0.98);
     }
-    .btn-danger {
-      background-color: #e74c3c;
-      margin-top: 8px;
+
+    /* रिस्पॉन्स डिस्प्ले स्टाइल (डैशबोर्ड) */
+    .dashboard {
+      display: none;
     }
-    .btn-danger:active {
-      background-color: #c0392b;
-    }
-    .hidden {
-      display: none !important;
-    }
+
     .info-box {
-      background: #eef2f5;
-      padding: 12px;
-      border-radius: 8px;
-      margin-bottom: 14px;
-      font-size: 0.9rem;
-      color: #2c3e50;
+      background-color: #f0f3ff;
+      border-left: 4px solid #4e54c8;
+      padding: 14px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      text-align: left;
+    }
+
+    .info-box p {
+      margin-bottom: 8px;
+      color: #333;
+      font-size: 0.95rem;
+    }
+
+    .info-box p:last-child {
+      margin-bottom: 0;
+    }
+
+    .logout-btn {
+      background-color: #e74c3c;
+    }
+
+    .logout-btn:hover {
+      background-color: #c0392b;
     }
   </style>
 </head>
 <body>
 
-  <!-- 1. LOGIN / SIGNUP SCREEN -->
-  <div id="login-screen" class="card">
-    <h2>Student Login / Register</h2>
-    <div class="form-group">
-      <label>नाम (Name)</label>
-      <input type="text" id="input-name" placeholder="अपना नाम लिखें">
-    </div>
-    <div class="form-group">
-      <label>रोल नंबर (Roll Number)</label>
-      <input type="text" id="input-roll" placeholder="रोल नंबर लिखें">
-    </div>
-    <div class="form-group">
-      <label>क्लास (Class)</label>
-      <select id="input-class">
-        <option value="1st Class">1st Class</option>
-        <option value="2nd Class">2nd Class</option>
-        <option value="3rd Class">3rd Class</option>
-        <option value="4th Class">4th Class</option>
-        <option value="5th Class">5th Class</option>
-        <option value="6th Class">6th Class</option>
-        <option value="7th Class">7th Class</option>
-        <option value="8th Class">8th Class</option>
-        <option value="9th Class">9th Class</option>
-        <option value="10th Class" selected>10th Class</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>पासवर्ड (Password)</label>
-      <input type="password" id="input-pass" placeholder="पासवर्ड दर्ज करें">
-    </div>
-    <button type="button" onclick="saveAndLogin()">लॉगिन / सेव करें</button>
-  </div>
+  <div class="card">
+    
+    <!-- 1. लॉगिन / रजिस्ट्रेशन फ़ॉर्म -->
+    <div id="loginForm">
+      <h2>विद्यार्थी लॉगिन</h2>
 
-  <!-- 2. HOME SCREEN (DATA DISPLAY) -->
-  <div id="home-screen" class="card hidden">
-    <h2>स्वागत है, छात्र!</h2>
-    <div class="info-box" id="display-user-info">
-      <!-- यहाँ सेव किया हुआ डेटा दिखेगा -->
+      <div class="input-group">
+        <label for="studentName">पूरा नाम (Name)</label>
+        <input type="text" id="studentName" placeholder="अपना नाम लिखें...">
+      </div>
+
+      <div class="input-group">
+        <label for="rollNumber">रोल नंबर (Roll No.)</label>
+        <!-- only integers allowed -->
+        <input type="number" id="rollNumber" placeholder="केवल अंक (e.g. 101)" step="1">
+      </div>
+
+      <div class="input-group">
+        <label for="classSelect">कक्षा (Class)</label>
+        <select id="classSelect">
+          <option value="">-- कक्षा चुनें --</option>
+          <option value="Class 1">कक्षा 1</option>
+          <option value="Class 2">कक्षा 2</option>
+          <option value="Class 3">कक्षा 3</option>
+          <option value="Class 4">कक्षा 4</option>
+          <option value="Class 5">कक्षा 5</option>
+          <option value="Class 6">कक्षा 6</option>
+          <option value="Class 7">कक्षा 7</option>
+          <option value="Class 8">कक्षा 8</option>
+          <option value="Class 9">कक्षा 9</option>
+          <option value="Class 10">कक्षा 10</option>
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label for="userPassword">पासवर्ड (Password)</label>
+        <input type="password" id="userPassword" placeholder="पासवर्ड लिखें...">
+      </div>
+
+      <button type="button" onclick="saveAndLogin()">लॉगिन / सहेजें</button>
     </div>
-    <button type="button" class="btn-danger" onclick="handleLogout()">लॉग आउट (Logout)</button>
+
+    <!-- 2. डैशबोर्ड (डेटा सेव होने के बाद दिखेगा) -->
+    <div id="dashboard" class="dashboard">
+      <h2>सहेजी गई जानकारी</h2>
+      
+      <div class="info-box">
+        <p><strong>नाम:</strong> <span id="displayName"></span></p>
+        <p><strong>रोल नंबर:</strong> <span id="displayRoll"></span></p>
+        <p><strong>कक्षा:</strong> <span id="displayClass"></span></p>
+        <p><strong>पासवर्ड:</strong> <span id="displayPassword">******</span></p>
+      </div>
+
+      <button type="button" class="logout-btn" onclick="clearData()">डेटा साफ़ करें (Logout)</button>
+    </div>
+
   </div>
 
   <script>
-    let currentUser = null;
-
-    // ऐप इनवेंटर या लोकलस्टोरेज से डेटा प्राप्त करने का फंक्शन
+    // App Inventor / WebViewer / Browser डेटा प्राप्त करने का फ़ंक्शन
     function getStoredData() {
-      let data = "";
+      let dataStr = "";
       if (window.AppInventor && typeof window.AppInventor.getWebViewString === 'function') {
-        data = window.AppInventor.getWebViewString();
+        dataStr = window.AppInventor.getWebViewString();
       } else if (window.WebViewerString) {
-        data = window.WebViewerString;
+        dataStr = window.WebViewerString;
       } else {
-        data = localStorage.getItem('simple_user_profile') || "";
+        dataStr = localStorage.getItem("studentSavedData") || "";
       }
-      return data;
+      return dataStr;
     }
 
-    // डेटा को TinyDB / WebViewString में भेजने का पक्का फंक्शन (टेस्ट कोड की तरह)
-    function storeDataToApp(dataString) {
-      localStorage.setItem('simple_user_profile', dataString);
+    // App Inventor / WebViewer / Browser डेटा सेव करने का फ़ंक्शन
+    function setStoredData(str) {
       if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
-        window.AppInventor.setWebViewString(dataString);
+        window.AppInventor.setWebViewString(str);
       } else {
-        window.WebViewerString = dataString;
+        window.WebViewerString = str;
+        localStorage.setItem("studentSavedData", str);
       }
     }
 
-    // होम स्क्रीन पर डेटा दिखाने का फंक्शन
-    function showHomeScreen(user) {
-      document.getElementById('login-screen').classList.add('hidden');
-      document.getElementById('home-screen').classList.remove('hidden');
+    // ऐप शुरू होते ही लोड करने वाला फ़ंक्शन
+    function checkSavedUser() {
+      const dataStr = getStoredData();
 
-      const infoBox = document.getElementById('display-user-info');
-      infoBox.innerHTML = `
-        <p><b>नाम:</b> ${user.name}</p>
-        <p><b>रोल नंबर:</b> ${user.roll}</p>
-        <p><b>क्लास:</b> ${user.classVal}</p>
-        <p><b>पासवर्ड:</b> ${user.password}</p>
-      `;
-    }
-
-    // ऐप इनिशियलाइज होते ही चेक करें (ऑटो-लॉगिन)
-    function checkAutoLogin() {
-      let rawData = getStoredData();
-      if (rawData && rawData !== "" && rawData !== "{}") {
+      if (dataStr && dataStr !== "null" && dataStr !== "undefined" && dataStr !== "") {
         try {
-          currentUser = JSON.parse(rawData);
-          if (currentUser && currentUser.roll) {
-            showHomeScreen(currentUser);
+          const userData = JSON.parse(dataStr);
+          if (userData && userData.name) {
+            showDashboard(userData);
           }
         } catch (e) {
-          // यदि प्लेन टेक्स्ट या पुराना फॉर्मेट हो
+          console.error("JSON Parsing error:", e);
         }
       }
     }
 
-    // ऐप इनवेंटर ब्रिज फंक्शन (अगर डेटा बाहर से बदले)
-    function NativeWebViewStringChanged(val) {
-      if (val && val !== "" && val !== "{}") {
-        try {
-          let parsed = JSON.parse(val);
-          if (parsed && parsed.roll) {
-            currentUser = parsed;
-            showHomeScreen(currentUser);
-          }
-        } catch (e) {}
-      }
-    }
-
-    // लॉगिन बटन दबाने पर
+    // बटन क्लिक होने पर डेटा सहेजने और लॉगिन करने का फ़ंक्शन
     function saveAndLogin() {
-      const name = document.getElementById('input-name').value.trim();
-      const roll = document.getElementById('input-roll').value.trim();
-      const classVal = document.getElementById('input-class').value;
-      const pass = document.getElementById('input-pass').value.trim();
+      const name = document.getElementById("studentName").value.trim();
+      const roll = document.getElementById("rollNumber").value.trim();
+      const studentClass = document.getElementById("classSelect").value;
+      const password = document.getElementById("userPassword").value;
 
-      if (!name || !roll || !pass) {
-        alert("कृपया सभी जानकारी भरें!");
+      // वैलिडेशन (जांच)
+      if (!name) {
+        alert("कृपया नाम दर्ज करें!");
+        return;
+      }
+      if (!roll) {
+        alert("कृपया रोल नंबर दर्ज करें!");
+        return;
+      }
+      if (!studentClass) {
+        alert("कृपया कक्षा चुनें!");
+        return;
+      }
+      if (!password) {
+        alert("कृपया पासवर्ड दर्ज करें!");
         return;
       }
 
-      currentUser = { name, roll, classVal, password: pass };
-      const jsonString = JSON.stringify(currentUser);
+      // डेटा ऑब्जेक्ट
+      const userData = {
+        name: name,
+        roll: roll,
+        class: studentClass,
+        password: password
+      };
 
-      // डेटा स्टोर करें
-      storeDataToApp(jsonString);
+      // डेटा को JSON स्ट्रिंग में बदलकर सेव करें
+      const jsonString = JSON.stringify(userData);
+      setStoredData(jsonString);
 
-      // होम स्क्रीन पर जाएँ
-      showHomeScreen(currentUser);
-      alert("डेटा सफलतापूर्वक सेव हो गया!");
+      // लॉगिन फ़ॉर्म छिपाएं और सहेजा हुआ डेटा दिखाएं
+      showDashboard(userData);
     }
 
-    // लॉग आउट बटन
-    function handleLogout() {
-      currentUser = null;
-      storeDataToApp("");
-      document.getElementById('home-screen').classList.add('hidden');
-      document.getElementById('login-screen').classList.remove('hidden');
+    // सहेजा हुआ डेटा स्क्रीन पर दिखाने का फ़ंक्शन
+    function showDashboard(userData) {
+      document.getElementById("displayName").innerText = userData.name;
+      document.getElementById("displayRoll").innerText = userData.roll;
+      document.getElementById("displayClass").innerText = userData.class;
+      document.getElementById("displayPassword").innerText = "•".repeat(userData.password ? userData.password.length : 6);
+
+      document.getElementById("loginForm").style.display = "none";
+      document.getElementById("dashboard").style.display = "block";
     }
 
-    // पेज लोड होते ही चेक करें
-    window.onload = checkAutoLogin;
+    // रिसेट / री-लॉगिन करने के लिए (टेस्टिंग के उद्देश्य से)
+    function clearData() {
+      setStoredData("");
+      document.getElementById("studentName").value = "";
+      document.getElementById("rollNumber").value = "";
+      document.getElementById("classSelect").value = "";
+      document.getElementById("userPassword").value = "";
+
+      document.getElementById("dashboard").style.display = "none";
+      document.getElementById("loginForm").style.display = "block";
+    }
+
+    // पेज लोड होने पर अपने आप लोड चेक करें
+    window.onload = checkSavedUser;
   </script>
+
 </body>
 </html>
