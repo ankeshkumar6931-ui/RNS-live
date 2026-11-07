@@ -255,45 +255,6 @@
                   0 2px 0px #0b544d,
                   inset 0 1px 2px rgba(0, 0, 0, 0.2);
     }
-
-    #homePage {
-      display: none;
-      text-align: center;
-    }
-
-    .profile-card {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 18px;
-      padding: 18px;
-      margin: 20px 0;
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      box-shadow: inset 0 2px 5px rgba(255, 255, 255, 0.15);
-    }
-
-    .info-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-      color: #ffffff;
-      font-size: 0.95rem;
-    }
-
-    .info-row:last-child {
-      border-bottom: none;
-    }
-
-    .info-label {
-      opacity: 0.8;
-      font-weight: 500;
-    }
-
-    .info-value {
-      font-weight: 700;
-      color: #38ef7d;
-      -webkit-user-select: text;
-      user-select: text;
-    }
   </style>
 </head>
 <body>
@@ -342,33 +303,6 @@
     <button type="button" class="btn-action" onclick="handleSignIn()">Sign In</button>
   </div>
 
-  <!-- HOME PAGE -->
-  <div class="glass-card" id="homePage">
-    <h2 class="title">Welcome Home</h2>
-    
-    <div class="profile-card">
-      <div class="info-row">
-        <span class="info-label">Name</span>
-        <span class="info-value" id="displayName">-</span>
-      </div>
-      <div class="info-row">
-        <span class="info-label">Roll No</span>
-        <span class="info-value" id="displayRoll">-</span>
-      </div>
-      <div class="info-row">
-        <span class="info-label">Class</span>
-        <span class="info-value" id="displayClass">-</span>
-      </div>
-      <div class="info-row">
-        <span class="info-label">Password</span>
-        <span class="info-value" id="displayPassword">-</span>
-      </div>
-    </div>
-
-    <!-- OK Button triggering event string for App Inventor -->
-    <button type="button" class="btn-action" onclick="handleOkClick()">OK</button>
-  </div>
-
   <script>
     let selectedClassValue = "";
 
@@ -404,7 +338,7 @@
       dropdown.classList.remove('open');
     });
 
-    // Auto-load & Auto-Login function when page opens
+    // Auto-load saved data to auto-fill inputs when page re-opens
     function checkSavedData() {
       let savedDataRaw = "";
 
@@ -416,7 +350,7 @@
         savedDataRaw = localStorage.getItem("studentData") || "";
       }
 
-      if (savedDataRaw && savedDataRaw !== "null" && savedDataRaw !== "undefined" && savedDataRaw !== "close_screen") {
+      if (savedDataRaw && savedDataRaw !== "null" && savedDataRaw !== "undefined" && savedDataRaw !== "signin_success") {
         try {
           const userData = JSON.parse(savedDataRaw);
           if (userData.name && userData.roll && userData.studentClass && userData.password) {
@@ -426,8 +360,6 @@
             selectedClassValue = userData.studentClass;
             trigger.innerText = selectedClassValue;
             trigger.classList.add('selected');
-
-            showHomePage(userData.name, userData.roll, userData.studentClass, userData.password);
           }
         } catch(e) {
           console.log("Parsing error", e);
@@ -435,22 +367,12 @@
       }
     }
 
-    function showHomePage(name, roll, studentClass, password) {
-      document.getElementById("displayName").innerText = name;
-      document.getElementById("displayRoll").innerText = roll;
-      document.getElementById("displayClass").innerText = studentClass;
-      document.getElementById("displayPassword").innerText = password;
-
-      document.getElementById("loginPage").style.display = "none";
-      document.getElementById("homePage").style.display = "block";
-    }
-
     function handleSignIn() {
       const name = document.getElementById("studentName").value.trim();
       const roll = document.getElementById("rollNumber").value.trim();
       const password = document.getElementById("userPassword").value.trim();
 
-      // Validation check with popup notification
+      // Validation checks with custom popup notification
       if (!name) {
         showPopup("Please enter your Name!");
         return;
@@ -471,25 +393,13 @@
       const userDataObj = { name, roll, studentClass: selectedClassValue, password };
       const userDataString = JSON.stringify(userDataObj);
 
-      // Save to TinyDB only during Sign In
+      // Save data to TinyDB / WebViewString and send signin_success signal to App Inventor
       if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
         window.AppInventor.setWebViewString(userDataString);
       } else {
         window.WebViewerString = userDataString;
         localStorage.setItem("studentData", userDataString);
-      }
-
-      showHomePage(name, roll, selectedClassValue, password);
-    }
-
-    // Sends 'close_screen' signal to WebViewStringChange event WITHOUT touching TinyDB data
-    function handleOkClick() {
-      const signal = "close_screen";
-      if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
-        window.AppInventor.setWebViewString(signal);
-      } else {
-        window.WebViewerString = signal;
-        showPopup("Signal sent: " + signal);
+        showPopup("Signed In successfully!");
       }
     }
 
