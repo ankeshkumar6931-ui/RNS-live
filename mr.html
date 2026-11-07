@@ -465,7 +465,6 @@
         try {
           const userData = JSON.parse(savedDataRaw);
           if (userData.roll) {
-            // Auto fill both forms
             document.getElementById("regName").value = userData.name || "";
             document.getElementById("regRoll").value = userData.roll || "";
             document.getElementById("regPass").value = userData.password || "";
@@ -485,7 +484,7 @@
       }
     };
 
-    // Save data method
+    // Save data to TinyDB / WebViewString
     function saveToTinyDB(userDataObj) {
       const userDataString = JSON.stringify(userDataObj);
       if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
@@ -506,7 +505,7 @@
       }
     }
 
-    // Handle Create Account
+    // Handle Create Account with strict matching of Name, Roll, Class, Password
     async function handleCreateAccount() {
       const name = document.getElementById("regName").value.trim();
       const roll = document.getElementById("regRoll").value.trim();
@@ -520,17 +519,24 @@
       toggleProgress(true);
 
       try {
-        // Check if account already exists in Firebase using Roll Number as unique key
         let response = await fetch(`${FIREBASE_URL}/${roll}.json`);
         let existingData = await response.json();
 
         if (existingData) {
-          toggleProgress(false);
-          showPopup("Profile already exists with this Roll Number!");
-          return;
+          // Strict check: if Name, Roll, Class and Password all match completely
+          if (
+            existingData.name.toLowerCase() === name.toLowerCase() &&
+            existingData.roll.toString() === roll.toString() &&
+            existingData.studentClass === selectedClassValue &&
+            existingData.password === password
+          ) {
+            toggleProgress(false);
+            showPopup("Profile already exists with exact same details!");
+            return;
+          }
         }
 
-        // Save new account to Firebase
+        // Save or Overwrite profile to Firebase
         const studentData = { name, roll, studentClass: selectedClassValue, password };
         let saveRes = await fetch(`${FIREBASE_URL}/${roll}.json`, {
           method: 'PUT',
@@ -553,7 +559,7 @@
       }
     }
 
-    // Handle Login
+    // Handle Login with strict verification of Name, Roll Number and Password
     async function handleLogin() {
       const name = document.getElementById("loginName").value.trim();
       const roll = document.getElementById("loginRoll").value.trim();
@@ -573,16 +579,21 @@
         toggleProgress(false);
 
         if (!userData) {
-          showPopup("Profile does not exist! Please check Roll Number.");
+          showPopup("Invalid Roll Number or Profile does not exist!");
           return;
         }
 
-        if (userData.password === password && userData.name.toLowerCase() === name.toLowerCase()) {
+        // Strict verification: Name, Roll Number, and Password must match completely
+        if (
+          userData.roll.toString() === roll.toString() &&
+          userData.name.toLowerCase() === name.toLowerCase() &&
+          userData.password === password
+        ) {
           saveToTinyDB(userData);
           showPopup("Login successful!");
           setTimeout(sendCloseInstruction, 1000);
         } else {
-          showPopup("Invalid Name or Password!");
+          showPopup("Invalid Name, Roll Number, or Password!");
         }
       } catch (err) {
         toggleProgress(false);
