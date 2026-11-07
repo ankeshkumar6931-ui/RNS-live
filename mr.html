@@ -171,7 +171,6 @@
       color: #38ef7d;
     }
 
-    /* Custom Scrollbar for Dropdown */
     .dropdown-menu::-webkit-scrollbar {
       width: 6px;
     }
@@ -181,7 +180,6 @@
       border-radius: 4px;
     }
 
-    /* Hide arrow for Number Input */
     input[type=number]::-webkit-inner-spin-button, 
     input[type=number]::-webkit-outer-spin-button { 
       -webkit-appearance: none; 
@@ -192,7 +190,7 @@
     }
 
     /* 3D Glass Button */
-    .btn-signin {
+    .btn-action {
       width: 100%;
       padding: 14px;
       margin-top: 10px;
@@ -210,19 +208,18 @@
       text-transform: uppercase;
     }
 
-    .btn-signin:hover {
+    .btn-action:hover {
       transform: translateY(-2px);
       box-shadow: 0 10px 24px rgba(17, 153, 142, 0.5),
                   0 6px 0px #0d6e65;
     }
 
-    .btn-signin:active {
+    .btn-action:active {
       transform: translateY(2px);
       box-shadow: 0 4px 10px rgba(17, 153, 142, 0.4),
                   0 2px 0px #0d6e65;
     }
 
-    /* Home Page Section */
     #homePage {
       display: none;
       text-align: center;
@@ -276,7 +273,6 @@
       <input type="number" id="rollNumber" class="input-field" placeholder="Enter numeric roll no" autocomplete="off">
     </div>
 
-    <!-- Custom Glass Dropdown -->
     <div class="input-group">
       <label>Class</label>
       <div class="custom-dropdown" id="customDropdown">
@@ -301,7 +297,7 @@
       <input type="password" id="userPassword" class="input-field" placeholder="Enter password">
     </div>
 
-    <button type="button" class="btn-signin" onclick="handleSignIn()">Sign In</button>
+    <button type="button" class="btn-action" onclick="handleSignIn()">Sign In</button>
   </div>
 
   <!-- HOME PAGE -->
@@ -327,13 +323,13 @@
       </div>
     </div>
 
-    <button type="button" class="btn-signin" onclick="handleLogout()">Sign Out</button>
+    <!-- OK Button -->
+    <button type="button" class="btn-action" onclick="handleOkClick()">OK</button>
   </div>
 
   <script>
     let selectedClassValue = "";
 
-    // Custom Dropdown Logic
     const dropdown = document.getElementById('customDropdown');
     const trigger = document.getElementById('selectTrigger');
     const options = document.querySelectorAll('.dropdown-option');
@@ -356,50 +352,86 @@
       dropdown.classList.remove('open');
     });
 
-    // Form Validation and Navigation
+    // Auto-load & Auto-Login function when page opens
+    function checkSavedData() {
+      let savedDataRaw = "";
+
+      if (window.AppInventor && typeof window.AppInventor.getWebViewString === 'function') {
+        savedDataRaw = window.AppInventor.getWebViewString();
+      } else if (window.WebViewerString) {
+        savedDataRaw = window.WebViewerString;
+      } else {
+        savedDataRaw = localStorage.getItem("studentData") || "";
+      }
+
+      if (savedDataRaw && savedDataRaw !== "null" && savedDataRaw !== "undefined") {
+        try {
+          const userData = JSON.parse(savedDataRaw);
+          if (userData.name && userData.roll && userData.studentClass && userData.password) {
+            // Fill Inputs
+            document.getElementById("studentName").value = userData.name;
+            document.getElementById("rollNumber").value = userData.roll;
+            document.getElementById("userPassword").value = userData.password;
+            selectedClassValue = userData.studentClass;
+            trigger.innerText = selectedClassValue;
+            trigger.classList.add('selected');
+
+            // Show Home Page Automatically (Auto-Login)
+            showHomePage(userData.name, userData.roll, userData.studentClass, userData.password);
+          }
+        } catch(e) {
+          console.log("Parsing error or raw text string", e);
+        }
+      }
+    }
+
+    function showHomePage(name, roll, studentClass, password) {
+      document.getElementById("displayName").innerText = name;
+      document.getElementById("displayRoll").innerText = roll;
+      document.getElementById("displayClass").innerText = studentClass;
+      document.getElementById("displayPassword").innerText = password;
+
+      document.getElementById("loginPage").style.display = "none";
+      document.getElementById("homePage").style.display = "block";
+    }
+
     function handleSignIn() {
       const name = document.getElementById("studentName").value.trim();
       const roll = document.getElementById("rollNumber").value.trim();
       const password = document.getElementById("userPassword").value.trim();
 
-      // Strict Validation: Restricts entry if any input is missing
       if (!name || !roll || !selectedClassValue || !password) {
         alert("Please fill in all details before proceeding!");
         return;
       }
 
-      // Display all data on Home Page including Password
-      document.getElementById("displayName").innerText = name;
-      document.getElementById("displayRoll").innerText = roll;
-      document.getElementById("displayClass").innerText = selectedClassValue;
-      document.getElementById("displayPassword").innerText = password;
+      const userDataObj = { name, roll, studentClass: selectedClassValue, password };
+      const userDataString = JSON.stringify(userDataObj);
 
-      // MIT App Inventor TinyDB Compatibility
-      const userData = JSON.stringify({ name, roll, studentClass: selectedClassValue, password });
+      // Send to TinyDB via AppInventor WebViewString
       if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
-        window.AppInventor.setWebViewString(userData);
+        window.AppInventor.setWebViewString(userDataString);
       } else {
-        window.WebViewerString = userData;
-        localStorage.setItem("studentData", userData);
+        window.WebViewerString = userDataString;
+        localStorage.setItem("studentData", userDataString);
       }
 
-      // Switch views
-      document.getElementById("loginPage").style.display = "none";
-      document.getElementById("homePage").style.display = "block";
+      showHomePage(name, roll, selectedClassValue, password);
     }
 
-    function handleLogout() {
-      document.getElementById("homePage").style.display = "none";
-      document.getElementById("loginPage").style.display = "block";
-      
-      // Clear Inputs & Reset Dropdown
-      document.getElementById("studentName").value = "";
-      document.getElementById("rollNumber").value = "";
-      document.getElementById("userPassword").value = "";
-      selectedClassValue = "";
-      trigger.innerText = "Select Class";
-      trigger.classList.remove('selected');
+    // Send signal to MIT App Inventor on OK click
+    function handleOkClick() {
+      const signal = "close_screen";
+      if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
+        window.AppInventor.setWebViewString(signal);
+      } else {
+        window.WebViewerString = signal;
+        alert("OK tapped! Signal sent to App Inventor: " + signal);
+      }
     }
+
+    // Run Auto-Fill & Auto-Login check on load
+    window.onload = checkSavedData;
   </script>
 
 </body>
