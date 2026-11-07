@@ -63,7 +63,7 @@
       margin-left: 4px;
     }
 
-    .input-field, select {
+    .input-field {
       width: 100%;
       padding: 12px 16px;
       background: rgba(255, 255, 255, 0.2);
@@ -81,27 +81,104 @@
       color: rgba(255, 255, 255, 0.6);
     }
 
-    .input-field:focus, select:focus {
+    .input-field:focus {
       background: rgba(255, 255, 255, 0.28);
       border-color: #38ef7d;
       box-shadow: 0 0 12px rgba(56, 239, 125, 0.4), inset 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
-    /* Custom Dropdown Style */
-    select {
-      appearance: none;
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      cursor: pointer;
-      background-image: url('data:image/svg+xml;utf8,<svg fill="%23ffffff" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
-      background-repeat: no-repeat;
-      background-position: right 12px center;
+    /* Custom Glassmorphism Dropdown UI */
+    .custom-dropdown {
+      position: relative;
+      user-select: none;
     }
 
-    select option {
-      background: #11998e;
+    .select-trigger {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      font-size: 0.95rem;
+      color: rgba(255, 255, 255, 0.6);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(5px);
+      transition: all 0.3s ease;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .select-trigger.selected {
       color: #ffffff;
-      font-weight: 500;
+    }
+
+    .select-trigger:after {
+      content: '▼';
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.8);
+      transition: transform 0.3s ease;
+    }
+
+    .custom-dropdown.open .select-trigger:after {
+      transform: rotate(180deg);
+    }
+
+    .custom-dropdown.open .select-trigger {
+      background: rgba(255, 255, 255, 0.28);
+      border-color: #38ef7d;
+      box-shadow: 0 0 12px rgba(56, 239, 125, 0.4);
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      top: 110%;
+      left: 0;
+      right: 0;
+      background: rgba(13, 59, 46, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+      max-height: 180px;
+      overflow-y: auto;
+      z-index: 100;
+      display: none;
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .custom-dropdown.open .dropdown-menu {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .dropdown-option {
+      padding: 10px 16px;
+      color: #ffffff;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.2s ease, padding-left 0.2s ease;
+    }
+
+    .dropdown-option:hover {
+      background: rgba(56, 239, 125, 0.3);
+      padding-left: 22px;
+      color: #38ef7d;
+    }
+
+    /* Custom Scrollbar for Dropdown */
+    .dropdown-menu::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .dropdown-menu::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 4px;
     }
 
     /* Hide arrow for Number Input */
@@ -199,21 +276,24 @@
       <input type="number" id="rollNumber" class="input-field" placeholder="Enter numeric roll no" autocomplete="off">
     </div>
 
+    <!-- Custom Glass Dropdown -->
     <div class="input-group">
-      <label for="classSelect">Class</label>
-      <select id="classSelect">
-        <option value="" disabled selected>Select Class</option>
-        <option value="Class 1">Class 1</option>
-        <option value="Class 2">Class 2</option>
-        <option value="Class 3">Class 3</option>
-        <option value="Class 4">Class 4</option>
-        <option value="Class 5">Class 5</option>
-        <option value="Class 6">Class 6</option>
-        <option value="Class 7">Class 7</option>
-        <option value="Class 8">Class 8</option>
-        <option value="Class 9">Class 9</option>
-        <option value="Class 10">Class 10</option>
-      </select>
+      <label>Class</label>
+      <div class="custom-dropdown" id="customDropdown">
+        <div class="select-trigger" id="selectTrigger">Select Class</div>
+        <div class="dropdown-menu">
+          <div class="dropdown-option" data-value="Class 1">Class 1</div>
+          <div class="dropdown-option" data-value="Class 2">Class 2</div>
+          <div class="dropdown-option" data-value="Class 3">Class 3</div>
+          <div class="dropdown-option" data-value="Class 4">Class 4</div>
+          <div class="dropdown-option" data-value="Class 5">Class 5</div>
+          <div class="dropdown-option" data-value="Class 6">Class 6</div>
+          <div class="dropdown-option" data-value="Class 7">Class 7</div>
+          <div class="dropdown-option" data-value="Class 8">Class 8</div>
+          <div class="dropdown-option" data-value="Class 9">Class 9</div>
+          <div class="dropdown-option" data-value="Class 10">Class 10</div>
+        </div>
+      </div>
     </div>
 
     <div class="input-group">
@@ -241,30 +321,61 @@
         <span class="info-label">Class</span>
         <span class="info-value" id="displayClass">-</span>
       </div>
+      <div class="info-row">
+        <span class="info-label">Password</span>
+        <span class="info-value" id="displayPassword">-</span>
+      </div>
     </div>
 
     <button type="button" class="btn-signin" onclick="handleLogout()">Sign Out</button>
   </div>
 
   <script>
+    let selectedClassValue = "";
+
+    // Custom Dropdown Logic
+    const dropdown = document.getElementById('customDropdown');
+    const trigger = document.getElementById('selectTrigger');
+    const options = document.querySelectorAll('.dropdown-option');
+
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdown.classList.toggle('open');
+    });
+
+    options.forEach(option => {
+      option.addEventListener('click', () => {
+        selectedClassValue = option.getAttribute('data-value');
+        trigger.innerText = selectedClassValue;
+        trigger.classList.add('selected');
+        dropdown.classList.remove('open');
+      });
+    });
+
+    document.addEventListener('click', () => {
+      dropdown.classList.remove('open');
+    });
+
+    // Form Validation and Navigation
     function handleSignIn() {
       const name = document.getElementById("studentName").value.trim();
       const roll = document.getElementById("rollNumber").value.trim();
-      const studentClass = document.getElementById("classSelect").value;
       const password = document.getElementById("userPassword").value.trim();
 
-      if (!name || !roll || !studentClass || !password) {
-        alert("Please fill in all details!");
+      // Strict Validation: Restricts entry if any input is missing
+      if (!name || !roll || !selectedClassValue || !password) {
+        alert("Please fill in all details before proceeding!");
         return;
       }
 
-      // Display data on Home Page
+      // Display all data on Home Page including Password
       document.getElementById("displayName").innerText = name;
       document.getElementById("displayRoll").innerText = roll;
-      document.getElementById("displayClass").innerText = studentClass;
+      document.getElementById("displayClass").innerText = selectedClassValue;
+      document.getElementById("displayPassword").innerText = password;
 
       // MIT App Inventor TinyDB Compatibility
-      const userData = JSON.stringify({ name, roll, studentClass });
+      const userData = JSON.stringify({ name, roll, studentClass: selectedClassValue, password });
       if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
         window.AppInventor.setWebViewString(userData);
       } else {
@@ -281,11 +392,13 @@
       document.getElementById("homePage").style.display = "none";
       document.getElementById("loginPage").style.display = "block";
       
-      // Clear Inputs
+      // Clear Inputs & Reset Dropdown
       document.getElementById("studentName").value = "";
       document.getElementById("rollNumber").value = "";
-      document.getElementById("classSelect").value = "";
       document.getElementById("userPassword").value = "";
+      selectedClassValue = "";
+      trigger.innerText = "Select Class";
+      trigger.classList.remove('selected');
     }
   </script>
 
