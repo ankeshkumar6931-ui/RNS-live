@@ -2,14 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Liquid Glassmorphism Student Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Liquid Glassmorphism Portal</title>
   <style>
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      /* टेक्स्ट को नॉन-सेलेक्टेबल बनाना */
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
     }
 
     body {
@@ -20,19 +25,21 @@
       align-items: center;
       min-height: 100vh;
       padding: 20px;
+      /* पेज पर ज़ूम और ओवरस्कोल रोकने के लिए */
+      touch-action: pan-x pan-y;
     }
 
-    /* Liquid Glassmorphism Container Card */
+    /* 3D Liquid Glassmorphism Container Card */
     .card {
-      background: rgba(255, 255, 255, 0.35);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.7);
-      border-radius: 30px;
-      padding: 35px 25px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25),
-                  inset 0 1px 0 rgba(255, 255, 255, 0.8),
-                  inset 0 -2px 5px rgba(0, 0, 0, 0.1);
+      background: rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border: 1.5px solid rgba(255, 255, 255, 0.8);
+      border-radius: 35px;
+      padding: 40px 30px;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3),
+                  inset 0 2px 4px rgba(255, 255, 255, 0.9),
+                  inset 0 -4px 10px rgba(45, 106, 79, 0.2);
       width: 100%;
       max-width: 400px;
       color: #1b4332;
@@ -40,15 +47,16 @@
 
     h2 {
       color: #1b4332;
-      margin-bottom: 22px;
-      font-size: 1.5rem;
+      margin-bottom: 25px;
+      font-size: 1.6rem;
       text-align: center;
-      font-weight: 700;
-      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+      font-weight: 800;
+      text-shadow: 0 2px 4px rgba(255, 255, 255, 0.9);
+      letter-spacing: 0.5px;
     }
 
     .input-group {
-      margin-bottom: 16px;
+      margin-bottom: 18px;
       text-align: left;
     }
 
@@ -57,9 +65,19 @@
       margin-bottom: 6px;
       font-size: 0.85rem;
       color: #1b4332;
-      font-weight: 700;
-      letter-spacing: 0.5px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
       text-transform: uppercase;
+      text-shadow: 0 1px 1px rgba(255, 255, 255, 0.6);
+      pointer-events: none; /* नॉन-क्लिकेबल लेबल */
+    }
+
+    /* इनपुट फील्ड्स में टाइप करने के लिए सेलेक्टेबल रखना जरूरी है */
+    input, select {
+      -webkit-user-select: text;
+      -moz-user-select: text;
+      -ms-user-select: text;
+      user-select: text;
     }
 
     /* Liquid 3D Inset Inputs */
@@ -68,26 +86,26 @@
     input[type="password"],
     select {
       width: 100%;
-      padding: 14px 16px;
-      border: 1px solid rgba(255, 255, 255, 0.8);
-      border-radius: 16px;
+      padding: 14px 18px;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      border-radius: 18px;
       font-size: 0.95rem;
       outline: none;
       transition: all 0.3s ease;
-      background: rgba(255, 255, 255, 0.55);
+      background: rgba(255, 255, 255, 0.6);
       color: #111;
-      box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.05),
-                  inset -2px -2px 5px rgba(255, 255, 255, 0.8);
+      box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.08),
+                  inset -3px -3px 6px rgba(255, 255, 255, 0.9);
     }
 
     input[type="text"]:focus,
     input[type="number"]:focus,
     input[type="password"]:focus,
     select:focus {
-      border-color: #52b788;
-      background: rgba(255, 255, 255, 0.85);
-      box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.08),
-                  0 0 12px rgba(82, 183, 136, 0.4);
+      border-color: #40916c;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.1),
+                  0 0 15px rgba(82, 183, 136, 0.6);
     }
 
     select option {
@@ -95,46 +113,51 @@
       background: #fff;
     }
 
-    /* Error Message Box */
+    /* Error Message Box (3D Floating) */
     .error-msg {
       color: #d90429;
-      background: rgba(255, 255, 255, 0.85);
-      padding: 10px;
-      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 12px;
+      border-radius: 12px;
       font-size: 0.85rem;
-      margin-bottom: 15px;
+      margin-bottom: 18px;
       text-align: center;
-      font-weight: 600;
+      font-weight: 700;
       display: none;
-      box-shadow: 0 4px 10px rgba(217, 4, 41, 0.15);
+      box-shadow: 0 8px 20px rgba(217, 4, 41, 0.25),
+                  inset 0 1px 2px rgba(255, 255, 255, 0.8);
     }
 
     /* Liquid 3D Raised Button */
     button {
       width: 100%;
-      padding: 14px;
-      background: linear-gradient(135deg, #40916c, #2d6a4f);
+      padding: 15px;
+      background: linear-gradient(135deg, #52b788, #2d6a4f);
       color: white;
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      border-radius: 16px;
-      font-size: 1rem;
+      border: 1.5px solid rgba(255, 255, 255, 0.6);
+      border-radius: 18px;
+      font-size: 1.05rem;
       font-weight: bold;
       cursor: pointer;
       transition: all 0.3s ease;
-      margin-top: 8px;
-      box-shadow: 0 8px 20px rgba(45, 106, 79, 0.35),
-                  inset 0 1px 2px rgba(255, 255, 255, 0.4);
+      margin-top: 10px;
+      box-shadow: 0 10px 25px rgba(45, 106, 79, 0.4),
+                  inset 0 2px 3px rgba(255, 255, 255, 0.6),
+                  inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
     }
 
     button:hover {
-      background: linear-gradient(135deg, #2d6a4f, #1b4332);
-      transform: translateY(-2px);
-      box-shadow: 0 12px 25px rgba(45, 106, 79, 0.45);
+      background: linear-gradient(135deg, #40916c, #1b4332);
+      transform: translateY(-3px);
+      box-shadow: 0 15px 30px rgba(45, 106, 79, 0.5),
+                  inset 0 2px 4px rgba(255, 255, 255, 0.7);
     }
 
     button:active {
       transform: scale(0.97);
-      box-shadow: 0 4px 10px rgba(45, 106, 79, 0.3);
+      box-shadow: 0 5px 15px rgba(45, 106, 79, 0.4),
+                  inset 0 2px 4px rgba(0, 0, 0, 0.3);
     }
 
     /* Dashboard Style */
@@ -143,25 +166,27 @@
     }
 
     .info-box {
-      background: rgba(255, 255, 255, 0.5);
+      background: rgba(255, 255, 255, 0.55);
       border-left: 6px solid #2d6a4f;
-      padding: 16px;
-      border-radius: 14px;
-      margin-bottom: 18px;
+      padding: 18px;
+      border-radius: 16px;
+      margin-bottom: 20px;
       text-align: left;
-      backdrop-filter: blur(10px);
-      box-shadow: inset 1px 1px 3px rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(12px);
+      box-shadow: inset 2px 2px 5px rgba(255, 255, 255, 0.9),
+                  0 8px 20px rgba(0, 0, 0, 0.05);
+      pointer-events: none; /* नॉन-क्लिकेबल इंफो बॉक्स */
     }
 
     .info-box p {
-      margin-bottom: 10px;
+      margin-bottom: 12px;
       color: #1b4332;
-      font-size: 0.95rem;
-      font-weight: 600;
+      font-size: 1rem;
+      font-weight: 700;
     }
 
     .info-box p span {
-      font-weight: normal;
+      font-weight: 500;
       color: #000;
     }
 
@@ -170,13 +195,14 @@
     }
 
     .logout-btn {
-      background: linear-gradient(135deg, #ef233c, #d90429);
-      box-shadow: 0 8px 20px rgba(217, 4, 41, 0.35),
-                  inset 0 1px 2px rgba(255, 255, 255, 0.4);
+      background: linear-gradient(135deg, #ff4d6d, #c9184a);
+      box-shadow: 0 10px 25px rgba(201, 24, 74, 0.4),
+                  inset 0 2px 3px rgba(255, 255, 255, 0.6),
+                  inset 0 -2px 4px rgba(0, 0, 0, 0.2);
     }
 
     .logout-btn:hover {
-      background: linear-gradient(135deg, #d90429, #c9184a);
+      background: linear-gradient(135deg, #c9184a, #a50125);
     }
   </style>
 </head>
@@ -188,7 +214,6 @@
     <div id="loginForm">
       <h2>Student Login</h2>
       
-      <!-- Error notification box -->
       <div id="errorBox" class="error-msg"></div>
 
       <div class="input-group">
@@ -290,7 +315,6 @@
       const studentClass = document.getElementById("classSelect").value;
       const password = document.getElementById("userPassword").value;
 
-      // Validation check with error display
       if (!name) {
         showError("Please enter your full name!");
         return;
