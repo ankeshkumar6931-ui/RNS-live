@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Glassmorphism Student Portal</title>
+  <title>Student Portal - Glassmorphism</title>
   <style>
     * {
       box-sizing: border-box;
@@ -13,7 +13,6 @@
     }
 
     body {
-      /* बैकग्राउंड इमेज और फॉलबैक ग्रीन-व्हाइट ग्रेडिएंट */
       background: url('1000063888.jpg') no-repeat center center fixed;
       background-size: cover;
       display: flex;
@@ -23,7 +22,7 @@
       padding: 20px;
     }
 
-    /* ग्लासमोर्फिज़्म कार्ड डिज़ाइन */
+    /* Glassmorphism Card */
     .card {
       background: rgba(255, 255, 255, 0.25);
       backdrop-filter: blur(12px);
@@ -82,10 +81,22 @@
       box-shadow: 0 0 8px rgba(45, 106, 79, 0.4);
     }
 
-    /* ड्रॉपडाउन के विकल्पों का रंग ठीक करने के लिए */
     select option {
       color: #333;
       background: #fff;
+    }
+
+    /* Error Message Style */
+    .error-msg {
+      color: #d90429;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      margin-bottom: 12px;
+      text-align: center;
+      font-weight: 600;
+      display: none;
     }
 
     button {
@@ -99,7 +110,7 @@
       font-weight: bold;
       cursor: pointer;
       transition: all 0.3s ease;
-      margin-top: 10px;
+      margin-top: 5px;
       box-shadow: 0 4px 10px rgba(45, 106, 79, 0.3);
     }
 
@@ -112,7 +123,7 @@
       transform: scale(0.98);
     }
 
-    /* डैशबोर्ड स्टाइल */
+    /* Dashboard Style */
     .dashboard {
       display: none;
     }
@@ -157,57 +168,60 @@
 
   <div class="card">
     
-    <!-- 1. लॉगिन / रजिस्ट्रेशन फ़ॉर्म -->
+    <!-- 1. Login Form -->
     <div id="loginForm">
-      <h2>विद्यार्थी लॉगिन</h2>
+      <h2>Student Login</h2>
+      
+      <!-- Error notification box -->
+      <div id="errorBox" class="error-msg"></div>
 
       <div class="input-group">
-        <label for="studentName">पूरा नाम (Name)</label>
-        <input type="text" id="studentName" placeholder="अपना नाम लिखें...">
+        <label for="studentName">Full Name</label>
+        <input type="text" id="studentName" placeholder="Enter your name...">
       </div>
 
       <div class="input-group">
-        <label for="rollNumber">रोल नंबर (Roll No.)</label>
-        <input type="number" id="rollNumber" placeholder="केवल अंक (e.g. 101)" step="1">
+        <label for="rollNumber">Roll Number</label>
+        <input type="number" id="rollNumber" placeholder="Enter integers only..." step="1">
       </div>
 
       <div class="input-group">
-        <label for="classSelect">कक्षा (Class)</label>
+        <label for="classSelect">Select Class</label>
         <select id="classSelect">
-          <option value="">-- कक्षा चुनें --</option>
-          <option value="Class 1">कक्षा 1</option>
-          <option value="Class 2">कक्षा 2</option>
-          <option value="Class 3">कक्षा 3</option>
-          <option value="Class 4">कक्षा 4</option>
-          <option value="Class 5">कक्षा 5</option>
-          <option value="Class 6">कक्षा 6</option>
-          <option value="Class 7">कक्षा 7</option>
-          <option value="Class 8">कक्षा 8</option>
-          <option value="Class 9">कक्षा 9</option>
-          <option value="Class 10">कक्षा 10</option>
+          <option value="">-- Select Class --</option>
+          <option value="Class 1">Class 1</option>
+          <option value="Class 2">Class 2</option>
+          <option value="Class 3">Class 3</option>
+          <option value="Class 4">Class 4</option>
+          <option value="Class 5">Class 5</option>
+          <option value="Class 6">Class 6</option>
+          <option value="Class 7">Class 7</option>
+          <option value="Class 8">Class 8</option>
+          <option value="Class 9">Class 9</option>
+          <option value="Class 10">Class 10</option>
         </select>
       </div>
 
       <div class="input-group">
-        <label for="userPassword">पासवर्ड (Password)</label>
-        <input type="password" id="userPassword" placeholder="पासवर्ड लिखें...">
+        <label for="userPassword">Password</label>
+        <input type="password" id="userPassword" placeholder="Enter password...">
       </div>
 
-      <button type="button" onclick="saveAndLogin()">लॉगिन / सहेजें</button>
+      <button type="button" onclick="saveAndLogin()">Login / Save</button>
     </div>
 
-    <!-- 2. डैशबोर्ड (डेटा सेव होने के बाद दिखेगा) -->
+    <!-- 2. Dashboard (Visible after successful login/data load) -->
     <div id="dashboard" class="dashboard">
-      <h2>सहेजी गई जानकारी</h2>
+      <h2>Student Profile</h2>
       
       <div class="info-box">
-        <p>नाम: <span id="displayName"></span></p>
-        <p>रोल नंबर: <span id="displayRoll"></span></p>
-        <p>कक्षा: <span id="displayClass"></span></p>
-        <p>पासवर्ड: <span id="displayPassword">******</span></p>
+        <p>Name: <span id="displayName"></span></p>
+        <p>Roll No: <span id="displayRoll"></span></p>
+        <p>Class: <span id="displayClass"></span></p>
+        <p>Password: <span id="displayPassword">******</span></p>
       </div>
 
-      <button type="button" class="logout-btn" onclick="clearData()">डेटा साफ़ करें (Logout)</button>
+      <button type="button" class="logout-btn" onclick="clearData()">Clear Data / Logout</button>
     </div>
 
   </div>
@@ -248,16 +262,38 @@
       }
     }
 
+    function showError(message) {
+      const errBox = document.getElementById("errorBox");
+      errBox.innerText = message;
+      errBox.style.display = "block";
+    }
+
     function saveAndLogin() {
       const name = document.getElementById("studentName").value.trim();
       const roll = document.getElementById("rollNumber").value.trim();
       const studentClass = document.getElementById("classSelect").value;
       const password = document.getElementById("userPassword").value;
 
-      if (!name) { alert("कृपया नाम दर्ज करें!"); return; }
-      if (!roll) { alert("कृपया रोल नंबर दर्ज करें!"); return; }
-      if (!studentClass) { alert("कृपया कक्षा चुनें!"); return; }
-      if (!password) { alert("कृपया पासवर्ड दर्ज करें!"); return; }
+      // Validation check
+      if (!name) {
+        showError("Please enter your full name!");
+        return;
+      }
+      if (!roll) {
+        showError("Please enter a valid roll number!");
+        return;
+      }
+      if (!studentClass) {
+        showError("Please select a class!");
+        return;
+      }
+      if (!password) {
+        showError("Please enter your password!");
+        return;
+      }
+
+      // Hide error if all fields are filled
+      document.getElementById("errorBox").style.display = "none";
 
       const userData = { name, roll, class: studentClass, password };
       setStoredData(JSON.stringify(userData));
@@ -280,6 +316,7 @@
       document.getElementById("rollNumber").value = "";
       document.getElementById("classSelect").value = "";
       document.getElementById("userPassword").value = "";
+      document.getElementById("errorBox").style.display = "none";
 
       document.getElementById("dashboard").style.display = "none";
       document.getElementById("loginForm").style.display = "block";
