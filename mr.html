@@ -1,383 +1,293 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Ranjan Sir Academy - Login / Register</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Portal</title>
   <style>
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      -webkit-tap-highlight-color: transparent;
+      font-family: 'Poppins', 'Segoe UI', sans-serif;
     }
 
     body {
-      background: radial-gradient(circle at 40% 30%, #dbe8df, #9cb3a8);
-      color: #1f3a2b;
+      background: linear-gradient(135deg, #0d3b2e, #11998e, #38ef7d);
       min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
       padding: 20px;
+      overflow-x: hidden;
     }
 
-    #error-popup {
-      position: fixed;
-      top: -80px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #ef4444;
-      color: #ffffff;
-      padding: 12px 20px;
-      border-radius: 30px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
-      z-index: 99999;
-      transition: top 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-      width: 90%;
-      max-width: 350px;
-      justify-content: center;
-      text-align: center;
-    }
-
-    #error-popup.show {
-      top: 20px;
-    }
-
-    .auth-card {
-      background: rgba(225, 248, 230, 0.95);
-      border: 1.5px solid rgba(255, 255, 255, 0.8);
+    /* 3D Glassmorphism Card */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.15);
       backdrop-filter: blur(16px);
-      padding: 24px;
-      border-radius: 32px;
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      padding: 32px 28px;
       width: 100%;
-      max-width: 360px;
-      box-shadow: inset -6px -8px 12px rgba(30, 70, 50, 0.15), inset 6px 8px 12px rgba(255, 255, 255, 0.85), 0 12px 25px rgba(20, 45, 30, 0.15);
+      max-width: 380px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3),
+                  inset 0 1px 2px rgba(255, 255, 255, 0.4);
+      transition: all 0.4s ease;
+    }
+
+    .title {
+      color: #ffffff;
       text-align: center;
-      max-height: 90vh;
-      overflow-y: auto;
-    }
-
-    .auth-card::-webkit-scrollbar {
-      display: none;
-    }
-
-    .auth-card h2 {
-      font-size: 1.3rem;
-      font-weight: 800;
-      color: #1f3a2b;
-      margin-bottom: 4px;
-    }
-
-    .auth-card p {
-      font-size: 0.8rem;
-      color: #3d5e4a;
-      margin-bottom: 16px;
-      font-weight: 600;
-    }
-
-    .auth-tab-bar {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 16px;
-      background: rgba(200, 238, 208, 0.4);
-      padding: 4px;
-      border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.6);
-    }
-
-    .auth-tab {
-      flex: 1;
-      padding: 10px;
-      text-align: center;
-      font-weight: 800;
-      font-size: 0.85rem;
-      cursor: pointer;
-      color: #3d5e4a;
-      border-radius: 12px;
-      transition: all 0.2s ease;
-    }
-
-    .auth-tab.active {
-      background: rgba(185, 232, 198, 0.95);
-      color: #1f3a2b;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    }
-
-    .form-group {
-      margin-bottom: 12px;
-      text-align: left;
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 0.78rem;
-      color: #3d5e4a;
-      margin-bottom: 4px;
+      font-size: 1.6rem;
       font-weight: 700;
+      margin-bottom: 24px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      letter-spacing: 0.5px;
     }
 
-    .input-field {
-      width: 100%;
-      background: rgba(255, 255, 255, 0.75);
-      border: 1.5px solid rgba(255, 255, 255, 0.85);
-      border-radius: 16px;
-      padding: 10px 14px;
-      color: #1f3a2b;
-      outline: none;
-      font-size: 0.9rem;
+    .input-group {
+      margin-bottom: 18px;
+      position: relative;
+    }
+
+    .input-group label {
+      display: block;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 0.85rem;
       font-weight: 600;
-      box-shadow: inset 2px 3px 6px rgba(20, 45, 30, 0.1);
+      margin-bottom: 6px;
+      margin-left: 4px;
     }
 
-    .input-field option {
-      background: #d4e7dc;
-      color: #1f3a2b;
-      font-weight: 600;
-    }
-
-    .btn-submit {
+    .input-field, select {
       width: 100%;
-      padding: 12px;
-      border-radius: 18px;
-      border: 1.5px solid rgba(255, 255, 255, 0.85);
-      background: rgba(200, 240, 208, 0.85);
-      color: #1f3a2b;
-      font-weight: 800;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
       font-size: 0.95rem;
-      cursor: pointer;
-      margin-top: 6px;
-      box-shadow: inset -4px -5px 8px rgba(30, 70, 50, 0.2), inset 4px 5px 8px rgba(255, 255, 255, 0.9), 0 8px 15px -3px rgba(20, 45, 30, 0.15);
-      transition: transform 0.15s ease;
+      color: #ffffff;
+      outline: none;
+      backdrop-filter: blur(5px);
+      transition: all 0.3s ease;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
-    .btn-submit:active {
-      transform: translateY(3px) scale(0.98);
+    .input-field::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .input-field:focus, select:focus {
+      background: rgba(255, 255, 255, 0.28);
+      border-color: #38ef7d;
+      box-shadow: 0 0 12px rgba(56, 239, 125, 0.4), inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Custom Dropdown Style */
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      cursor: pointer;
+      background-image: url('data:image/svg+xml;utf8,<svg fill="%23ffffff" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+    }
+
+    select option {
+      background: #11998e;
+      color: #ffffff;
+      font-weight: 500;
+    }
+
+    /* Hide arrow for Number Input */
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+
+    /* 3D Glass Button */
+    .btn-signin {
+      width: 100%;
+      padding: 14px;
+      margin-top: 10px;
+      background: linear-gradient(135deg, #38ef7d, #11998e);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(17, 153, 142, 0.4),
+                  0 4px 0px #0d6e65;
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+    }
+
+    .btn-signin:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(17, 153, 142, 0.5),
+                  0 6px 0px #0d6e65;
+    }
+
+    .btn-signin:active {
+      transform: translateY(2px);
+      box-shadow: 0 4px 10px rgba(17, 153, 142, 0.4),
+                  0 2px 0px #0d6e65;
+    }
+
+    /* Home Page Section */
+    #homePage {
+      display: none;
+      text-align: center;
+    }
+
+    .profile-card {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 16px;
+      margin: 20px 0;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      font-size: 0.95rem;
+    }
+
+    .info-row:last-child {
+      border-bottom: none;
+    }
+
+    .info-label {
+      opacity: 0.8;
+      font-weight: 500;
+    }
+
+    .info-value {
+      font-weight: 700;
+      color: #38ef7d;
     }
   </style>
 </head>
 <body>
 
-  <div id="error-popup">
-    <i class="fa-solid fa-circle-exclamation"></i>
-    <span id="error-msg">कृपया सभी विवरण भरें!</span>
+  <!-- SIGN IN PAGE -->
+  <div class="glass-card" id="loginPage">
+    <h2 class="title">Sign In</h2>
+
+    <div class="input-group">
+      <label for="studentName">Name</label>
+      <input type="text" id="studentName" class="input-field" placeholder="Enter full name" autocomplete="off">
+    </div>
+
+    <div class="input-group">
+      <label for="rollNumber">Roll Number</label>
+      <input type="number" id="rollNumber" class="input-field" placeholder="Enter numeric roll no" autocomplete="off">
+    </div>
+
+    <div class="input-group">
+      <label for="classSelect">Class</label>
+      <select id="classSelect">
+        <option value="" disabled selected>Select Class</option>
+        <option value="Class 1">Class 1</option>
+        <option value="Class 2">Class 2</option>
+        <option value="Class 3">Class 3</option>
+        <option value="Class 4">Class 4</option>
+        <option value="Class 5">Class 5</option>
+        <option value="Class 6">Class 6</option>
+        <option value="Class 7">Class 7</option>
+        <option value="Class 8">Class 8</option>
+        <option value="Class 9">Class 9</option>
+        <option value="Class 10">Class 10</option>
+      </select>
+    </div>
+
+    <div class="input-group">
+      <label for="userPassword">Password</label>
+      <input type="password" id="userPassword" class="input-field" placeholder="Enter password">
+    </div>
+
+    <button type="button" class="btn-signin" onclick="handleSignIn()">Sign In</button>
   </div>
 
-  <div class="auth-card">
-    <h2>Ranjan Sir Academy</h2>
-    <p>कृपया लॉगिन करें या नया अकाउंट बनाएं</p>
+  <!-- HOME PAGE -->
+  <div class="glass-card" id="homePage">
+    <h2 class="title">Welcome Home</h2>
     
-    <div class="auth-tab-bar">
-      <div id="tab-btn-login" class="auth-tab active" onclick="switchMode('login')">Log In</div>
-      <div id="tab-btn-signup" class="auth-tab" onclick="switchMode('signup')">Create Account</div>
+    <div class="profile-card">
+      <div class="info-row">
+        <span class="info-label">Name</span>
+        <span class="info-value" id="displayName">-</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Roll No</span>
+        <span class="info-value" id="displayRoll">-</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Class</span>
+        <span class="info-value" id="displayClass">-</span>
+      </div>
     </div>
 
-    <!-- 1. लॉगिन फॉर्म (सिर्फ नाम, रोल नंबर और पासवर्ड) -->
-    <div id="auth-form-login">
-      <div class="form-group">
-        <label>Student Name</label>
-        <input type="text" id="login-name" class="input-field" placeholder="अपना नाम दर्ज करें">
-      </div>
-      <div class="form-group">
-        <label>Roll Number</label>
-        <!-- सिर्फ नंबर्स के लिए input type="tel" या pattern इस्तेमाल किया गया है -->
-        <input type="tel" id="login-roll" class="input-field" placeholder="केवल अंक (Numbers) दर्ज करें" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="login-pass" class="input-field" placeholder="पासवर्ड दर्ज करें">
-      </div>
-      <button class="btn-submit" type="button" onclick="handleLogin()">Log In</button>
-    </div>
-
-    <!-- 2. अकाउंट क्रिएट फॉर्म (क्लास ड्रॉप-डाउन और केवल नंबर रोल नंबर के साथ) -->
-    <div id="auth-form-signup" style="display: none;">
-      <div class="form-group">
-        <label>Full Name</label>
-        <input type="text" id="reg-name" class="input-field" placeholder="पूरा नाम लिखें">
-      </div>
-      <div class="form-group">
-        <label>Roll Number (केवल अंक)</label>
-        <!-- अल्फाबेट्स को रोकने के लिए oninput स्क्रिप्ट लगाई गई है -->
-        <input type="tel" id="reg-id" class="input-field" placeholder="रोल नंबर (जैसे: 101)" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-      </div>
-      <div class="form-group">
-        <label>Select Class</label>
-        <select id="reg-class" class="input-field">
-          <option value="1st Class">1st Class</option>
-          <option value="2nd Class">2nd Class</option>
-          <option value="3rd Class">3rd Class</option>
-          <option value="4th Class">4th Class</option>
-          <option value="5th Class">5th Class</option>
-          <option value="6th Class">6th Class</option>
-          <option value="7th Class">7th Class</option>
-          <option value="8th Class">8th Class</option>
-          <option value="9th Class">9th Class</option>
-          <option value="10th Class" selected>10th Class</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Create Password</label>
-        <input type="password" id="reg-pass" class="input-field" placeholder="पासवर्ड बनाएं">
-      </div>
-      <button class="btn-submit" type="button" onclick="handleSignUp()">Create Account & Login</button>
-    </div>
+    <button type="button" class="btn-signin" onclick="handleLogout()">Sign Out</button>
   </div>
 
   <script>
-    const FIREBASE_URL = "https://live-app-bdba9-default-rtdb.firebaseio.com/";
+    function handleSignIn() {
+      const name = document.getElementById("studentName").value.trim();
+      const roll = document.getElementById("rollNumber").value.trim();
+      const studentClass = document.getElementById("classSelect").value;
+      const password = document.getElementById("userPassword").value.trim();
 
-    // 1. ऑटो-चेक: यदि TinyDB या LocalStorage में पहले से डेटा मौजूद है
-    window.onload = () => {
-      let savedData = "";
-      if (window.AppInventor && typeof window.AppInventor.getWebViewString === 'function') {
-        savedData = window.AppInventor.getWebViewString();
-      } else if (window.WebViewerString) {
-        savedData = window.WebViewerString;
-      } else {
-        savedData = localStorage.getItem("saved_user_profile") || "";
+      if (!name || !roll || !studentClass || !password) {
+        alert("Please fill in all details!");
+        return;
       }
 
-      try {
-        if (savedData && savedData !== "" && savedData !== "{}" && savedData !== "null") {
-          let userObj = JSON.parse(savedData);
-          if (userObj && userObj.id) {
-            sendOpenScreenSignal("user1.html");
-          }
-        }
-      } catch (e) {}
-    };
+      // Display data on Home Page
+      document.getElementById("displayName").innerText = name;
+      document.getElementById("displayRoll").innerText = roll;
+      document.getElementById("displayClass").innerText = studentClass;
 
-    function showErrorPopup(msg) {
-      const popup = document.getElementById('error-popup');
-      document.getElementById('error-msg').innerText = msg;
-      popup.classList.add('show');
-      setTimeout(() => {
-        popup.classList.remove('show');
-      }, 3500);
-    }
-
-    function switchMode(mode) {
-      if (mode === 'login') {
-        document.getElementById('tab-btn-login').classList.add('active');
-        document.getElementById('tab-btn-signup').classList.remove('active');
-        document.getElementById('auth-form-login').style.display = 'block';
-        document.getElementById('auth-form-signup').style.display = 'none';
-      } else {
-        document.getElementById('tab-btn-signup').classList.add('active');
-        document.getElementById('tab-btn-login').classList.remove('active');
-        document.getElementById('auth-form-signup').style.display = 'block';
-        document.getElementById('auth-form-login').style.display = 'none';
-      }
-    }
-
-    function saveToTinyDbAndProceed(userData) {
-      const userStr = JSON.stringify(userData);
-      localStorage.setItem("saved_user_profile", userStr);
-
+      // MIT App Inventor TinyDB Compatibility
+      const userData = JSON.stringify({ name, roll, studentClass });
       if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
-        window.AppInventor.setWebViewString(userStr);
+        window.AppInventor.setWebViewString(userData);
       } else {
-        window.WebViewerString = userStr;
+        window.WebViewerString = userData;
+        localStorage.setItem("studentData", userData);
       }
 
-      setTimeout(() => {
-        sendOpenScreenSignal("user1.html");
-      }, 300);
+      // Switch views
+      document.getElementById("loginPage").style.display = "none";
+      document.getElementById("homePage").style.display = "block";
     }
 
-    function sendOpenScreenSignal(screenName) {
-      const signal = "OPEN_SCREEN:" + screenName;
-      if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
-        window.AppInventor.setWebViewString(signal);
-      } else {
-        window.WebViewerString = signal;
-      }
-    }
-
-    // --- लॉगिन लॉजिक ---
-    async function handleLogin() {
-      const name = document.getElementById('login-name').value.trim();
-      const roll = document.getElementById('login-roll').value.trim();
-      const pass = document.getElementById('login-pass').value.trim();
-
-      if (!name) { showErrorPopup("कृपया अपना नाम भरें!"); return; }
-      if (!roll) { showErrorPopup("कृपया रोल नंबर भरें!"); return; }
-      if (!pass) { showErrorPopup("कृपया पासवर्ड दर्ज करें!"); return; }
-
-      try {
-        let res = await fetch(`${FIREBASE_URL}/UsersMap/${roll}.json`);
-        let uData = await res.json();
-
-        if (uData) {
-          if (uData.password === pass) {
-            if (uData.name && uData.name.trim().toLowerCase() === name.toLowerCase()) {
-              saveToTinyDbAndProceed(uData);
-            } else {
-              showErrorPopup("यह नाम इस रोल नंबर से मेल नहीं खाता है!");
-            }
-          } else {
-            showErrorPopup("गलत पासवर्ड दर्ज किया गया है!");
-          }
-        } else {
-          showErrorPopup("सॉरी, यह अकाउंट/रोल नंबर मौजूद नहीं है!");
-        }
-      } catch (e) {
-        showErrorPopup("नेटवर्क एरर! कृपया दोबारा प्रयास करें।");
-      }
-    }
-
-    // --- क्रिएट अकाउंट लॉजिक ---
-    async function handleSignUp() {
-      const name = document.getElementById('reg-name').value.trim();
-      const uid = document.getElementById('reg-id').value.trim();
-      const classVal = document.getElementById('reg-class').value;
-      const pass = document.getElementById('reg-pass').value.trim();
-
-      if (!name) { showErrorPopup("कृपया पूरा नाम दर्ज करें!"); return; }
-      if (!uid) { showErrorPopup("कृपया रोल नंबर (केवल अंक) भरें!"); return; }
-      if (!pass) { showErrorPopup("कृपया पासवर्ड बनाएं!"); return; }
-
-      try {
-        let res = await fetch(`${FIREBASE_URL}/UsersMap/${uid}.json`);
-        let existing = await res.json();
-
-        if (existing) {
-          showErrorPopup("सॉरी! यह रोल नंबर पहले से ही मौजूद है।");
-          return;
-        }
-
-        const newUser = {
-          id: uid,
-          roll: uid,
-          name: name,
-          password: pass,
-          classVal: classVal,
-          board: 'Bihar Board',
-          dp: 'https://api.dicebear.com/7.x/micah/svg?seed=' + uid,
-          score: 0
-        };
-
-        await fetch(`${FIREBASE_URL}/UsersMap/${uid}.json`, {
-          method: 'PUT',
-          body: JSON.stringify(newUser)
-        });
-
-        saveToTinyDbAndProceed(newUser);
-
-      } catch (e) {
-        showErrorPopup("अकाउंट बनाने में समस्या हुई! पुनः प्रयास करें।");
-      }
+    function handleLogout() {
+      document.getElementById("homePage").style.display = "none";
+      document.getElementById("loginPage").style.display = "block";
+      
+      // Clear Inputs
+      document.getElementById("studentName").value = "";
+      document.getElementById("rollNumber").value = "";
+      document.getElementById("classSelect").value = "";
+      document.getElementById("userPassword").value = "";
     }
   </script>
+
 </body>
 </html>
