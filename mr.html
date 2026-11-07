@@ -345,19 +345,19 @@
 
       <div class="input-group">
         <label>Class</label>
-        <div class="custom-dropdown" id="customDropdown">
-          <div class="select-trigger" id="selectTrigger">Select Class</div>
+        <div class="custom-dropdown" id="createDropdown">
+          <div class="select-trigger" id="createTrigger">Select Class</div>
           <div class="dropdown-menu">
-            <div class="dropdown-option" data-value="Class 1">Class 1</div>
-            <div class="dropdown-option" data-value="Class 2">Class 2</div>
-            <div class="dropdown-option" data-value="Class 3">Class 3</div>
-            <div class="dropdown-option" data-value="Class 4">Class 4</div>
-            <div class="dropdown-option" data-value="Class 5">Class 5</div>
-            <div class="dropdown-option" data-value="Class 6">Class 6</div>
-            <div class="dropdown-option" data-value="Class 7">Class 7</div>
-            <div class="dropdown-option" data-value="Class 8">Class 8</div>
-            <div class="dropdown-option" data-value="Class 9">Class 9</div>
-            <div class="dropdown-option" data-value="Class 10">Class 10</div>
+            <div class="dropdown-option" data-value="Class 1" data-form="create">Class 1</div>
+            <div class="dropdown-option" data-value="Class 2" data-form="create">Class 2</div>
+            <div class="dropdown-option" data-value="Class 3" data-form="create">Class 3</div>
+            <div class="dropdown-option" data-value="Class 4" data-form="create">Class 4</div>
+            <div class="dropdown-option" data-value="Class 5" data-form="create">Class 5</div>
+            <div class="dropdown-option" data-value="Class 6" data-form="create">Class 6</div>
+            <div class="dropdown-option" data-value="Class 7" data-form="create">Class 7</div>
+            <div class="dropdown-option" data-value="Class 8" data-form="create">Class 8</div>
+            <div class="dropdown-option" data-value="Class 9" data-form="create">Class 9</div>
+            <div class="dropdown-option" data-value="Class 10" data-form="create">Class 10</div>
           </div>
         </div>
       </div>
@@ -383,6 +383,25 @@
       </div>
 
       <div class="input-group">
+        <label>Class</label>
+        <div class="custom-dropdown" id="loginDropdown">
+          <div class="select-trigger" id="loginTrigger">Select Class</div>
+          <div class="dropdown-menu">
+            <div class="dropdown-option" data-value="Class 1" data-form="login">Class 1</div>
+            <div class="dropdown-option" data-value="Class 2" data-form="login">Class 2</div>
+            <div class="dropdown-option" data-value="Class 3" data-form="login">Class 3</div>
+            <div class="dropdown-option" data-value="Class 4" data-form="login">Class 4</div>
+            <div class="dropdown-option" data-value="Class 5" data-form="login">Class 5</div>
+            <div class="dropdown-option" data-value="Class 6" data-form="login">Class 6</div>
+            <div class="dropdown-option" data-value="Class 7" data-form="login">Class 7</div>
+            <div class="dropdown-option" data-value="Class 8" data-form="login">Class 8</div>
+            <div class="dropdown-option" data-value="Class 9" data-form="login">Class 9</div>
+            <div class="dropdown-option" data-value="Class 10" data-form="login">Class 10</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="input-group">
         <label for="loginPass">Password</label>
         <input type="password" id="loginPass" class="input-field" placeholder="Enter password">
       </div>
@@ -393,7 +412,8 @@
 
   <script>
     const FIREBASE_URL = "https://live-app-bdba9-default-rtdb.firebaseio.com/students";
-    let selectedClassValue = "";
+    let createClassValue = "";
+    let loginClassValue = "";
 
     function showPopup(message) {
       const popup = document.getElementById('customPopup');
@@ -427,30 +447,60 @@
       }
     }
 
-    // Custom Dropdown logic
-    const dropdown = document.getElementById('customDropdown');
-    const trigger = document.getElementById('selectTrigger');
-    const options = document.querySelectorAll('.dropdown-option');
+    // Custom Dropdown logic for both Create and Login forms
+    const createDropdown = document.getElementById('createDropdown');
+    const createTrigger = document.getElementById('createTrigger');
 
-    trigger.addEventListener('click', (e) => {
+    const loginDropdown = document.getElementById('loginDropdown');
+    const loginTrigger = document.getElementById('loginTrigger');
+
+    createTrigger.addEventListener('click', (e) => {
       e.stopPropagation();
-      dropdown.classList.toggle('open');
+      createDropdown.classList.toggle('open');
+      loginDropdown.classList.remove('open');
     });
 
-    options.forEach(option => {
+    loginTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      loginDropdown.classList.toggle('open');
+      createDropdown.classList.remove('open');
+    });
+
+    document.querySelectorAll('.dropdown-option').forEach(option => {
       option.addEventListener('click', () => {
-        selectedClassValue = option.getAttribute('data-value');
-        trigger.innerText = selectedClassValue;
-        trigger.classList.add('selected');
-        dropdown.classList.remove('open');
+        const val = option.getAttribute('data-value');
+        const formType = option.getAttribute('data-form');
+
+        if (formType === 'create') {
+          createClassValue = val;
+          createTrigger.innerText = val;
+          createTrigger.classList.add('selected');
+          createDropdown.classList.remove('open');
+        } else {
+          loginClassValue = val;
+          loginTrigger.innerText = val;
+          loginTrigger.classList.add('selected');
+          loginDropdown.classList.remove('open');
+        }
       });
     });
 
     document.addEventListener('click', () => {
-      dropdown.classList.remove('open');
+      createDropdown.classList.remove('open');
+      loginDropdown.classList.remove('open');
     });
 
-    // Auto-load data from TinyDB / WebViewString for Auto-Fill
+    // Send instruction signal to App Inventor
+    function sendInstruction(signalName) {
+      if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
+        window.AppInventor.setWebViewString(signalName);
+      } else {
+        window.WebViewerString = signalName;
+        showPopup("Signal sent: " + signalName);
+      }
+    }
+
+    // Auto-load data from TinyDB / WebViewString for Auto-Fill & Auto-Login check
     window.onload = function() {
       let savedDataRaw = "";
       if (window.AppInventor && typeof window.AppInventor.getWebViewString === 'function') {
@@ -461,22 +511,34 @@
         savedDataRaw = localStorage.getItem("studentData") || "";
       }
 
-      if (savedDataRaw && savedDataRaw !== "null" && savedDataRaw !== "undefined" && savedDataRaw !== "close_webviewer") {
+      if (savedDataRaw && savedDataRaw !== "null" && savedDataRaw !== "undefined" && savedDataRaw !== "close_webviewer" && savedDataRaw !== "auto_login_success" && savedDataRaw !== "signin_success") {
         try {
           const userData = JSON.parse(savedDataRaw);
           if (userData.roll) {
+            // Auto fill Create form
             document.getElementById("regName").value = userData.name || "";
             document.getElementById("regRoll").value = userData.roll || "";
             document.getElementById("regPass").value = userData.password || "";
             if(userData.studentClass) {
-              selectedClassValue = userData.studentClass;
-              trigger.innerText = selectedClassValue;
-              trigger.classList.add('selected');
+              createClassValue = userData.studentClass;
+              createTrigger.innerText = createClassValue;
+              createTrigger.classList.add('selected');
             }
 
+            // Auto fill Login form
             document.getElementById("loginName").value = userData.name || "";
             document.getElementById("loginRoll").value = userData.roll || "";
             document.getElementById("loginPass").value = userData.password || "";
+            if(userData.studentClass) {
+              loginClassValue = userData.studentClass;
+              loginTrigger.innerText = loginClassValue;
+              loginTrigger.classList.add('selected');
+            }
+
+            // If data is already fully present, trigger auto-login signal to hide WebViewer 1 and open WebViewer 2
+            setTimeout(() => {
+              sendInstruction("auto_login_success");
+            }, 500);
           }
         } catch(e) {
           console.log("Auto-fill parsing error", e);
@@ -495,23 +557,13 @@
       }
     }
 
-    // Trigger close instruction for App Inventor layout removal
-    function sendCloseInstruction() {
-      if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
-        window.AppInventor.setWebViewString("close_webviewer");
-      } else {
-        window.WebViewerString = "close_webviewer";
-        showPopup("Instruction sent: close_webviewer");
-      }
-    }
-
     // Handle Create Account with strict matching of Name, Roll, Class, Password
     async function handleCreateAccount() {
       const name = document.getElementById("regName").value.trim();
       const roll = document.getElementById("regRoll").value.trim();
       const password = document.getElementById("regPass").value.trim();
 
-      if (!name || !roll || !selectedClassValue || !password) {
+      if (!name || !roll || !createClassValue || !password) {
         showPopup("Please fill in all details!");
         return;
       }
@@ -527,7 +579,7 @@
           if (
             existingData.name.toLowerCase() === name.toLowerCase() &&
             existingData.roll.toString() === roll.toString() &&
-            existingData.studentClass === selectedClassValue &&
+            existingData.studentClass === createClassValue &&
             existingData.password === password
           ) {
             toggleProgress(false);
@@ -536,8 +588,8 @@
           }
         }
 
-        // Save or Overwrite profile to Firebase
-        const studentData = { name, roll, studentClass: selectedClassValue, password };
+        // Save profile to Firebase
+        const studentData = { name, roll, studentClass: createClassValue, password };
         let saveRes = await fetch(`${FIREBASE_URL}/${roll}.json`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -548,7 +600,9 @@
           saveToTinyDB(studentData);
           toggleProgress(false);
           showPopup("Account created successfully!");
-          setTimeout(sendCloseInstruction, 1000);
+          setTimeout(() => {
+            sendInstruction("close_webviewer");
+          }, 1000);
         } else {
           toggleProgress(false);
           showPopup("Failed to save data. Try again!");
@@ -559,14 +613,14 @@
       }
     }
 
-    // Handle Login with strict verification of Name, Roll Number and Password
+    // Handle Login with strict verification of Name, Roll Number, Class and Password
     async function handleLogin() {
       const name = document.getElementById("loginName").value.trim();
       const roll = document.getElementById("loginRoll").value.trim();
       const password = document.getElementById("loginPass").value.trim();
 
-      if (!name || !roll || !password) {
-        showPopup("Please fill in Name, Roll Number, and Password!");
+      if (!name || !roll || !loginClassValue || !password) {
+        showPopup("Please fill in Name, Roll Number, Class, and Password!");
         return;
       }
 
@@ -583,17 +637,20 @@
           return;
         }
 
-        // Strict verification: Name, Roll Number, and Password must match completely
+        // Strict verification: Name, Roll Number, Class, and Password must match completely
         if (
           userData.roll.toString() === roll.toString() &&
           userData.name.toLowerCase() === name.toLowerCase() &&
+          userData.studentClass === loginClassValue &&
           userData.password === password
         ) {
           saveToTinyDB(userData);
           showPopup("Login successful!");
-          setTimeout(sendCloseInstruction, 1000);
+          setTimeout(() => {
+            sendInstruction("close_webviewer");
+          }, 1000);
         } else {
-          showPopup("Invalid Name, Roll Number, or Password!");
+          showPopup("Invalid Name, Roll Number, Class, or Password!");
         }
       } catch (err) {
         toggleProgress(false);
