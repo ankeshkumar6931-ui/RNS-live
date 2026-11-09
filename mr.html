@@ -356,8 +356,7 @@
       </div>
 
       <div id="auth-form-login">
-        <div class="form-group"><label>Student Name</label><input type="text" id="login-name" class="input-field" placeholder="Enter Your Name"></div>
-        <div class="form-group"><label>Roll Number</label><input type="text" id="login-roll" class="input-field" placeholder="Enter Roll Number"></div>
+        <div class="form-group"><label>Roll Number / ID</label><input type="text" id="login-roll" class="input-field" placeholder="Enter Roll Number"></div>
         <div class="form-group"><label>Password</label><input type="password" id="login-pass" class="input-field" placeholder="Enter Password"></div>
         <button class="btn-submit" type="button" onclick="handleLogin()">Log In</button>
       </div>
@@ -365,6 +364,7 @@
       <div id="auth-form-signup" style="display: none;">
         <div class="form-group"><label>Full Name</label><input type="text" id="reg-name" class="input-field" placeholder="Your Name"></div>
         <div class="form-group"><label>Roll Number / User ID</label><input type="text" id="reg-id" class="input-field" placeholder="Create Roll / ID"></div>
+        <div class="form-group"><label>Class</label><input type="text" id="reg-class" class="input-field" placeholder="e.g. 10th Class"></div>
         <div class="form-group"><label>Create Password</label><input type="password" id="reg-pass" class="input-field" placeholder="Create Password"></div>
         <button class="btn-submit" type="button" onclick="handleSignUp()">Create Account & Login</button>
       </div>
@@ -375,7 +375,7 @@
   <div id="sync-dp-modal" class="modal-overlay">
     <div class="modal-card" onclick="event.stopPropagation()">
       <h3 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 6px;">Update Profile Picture</h3>
-      <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 16px;">After selecting your DP in the editor link, tap Scan & Update to sync it to TinyDB.</p>
+      <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 16px;">After selecting your DP in the editor link, tap Scan & Update to sync it from Firebase.</p>
       <div style="background: rgba(255,255,255,0.6); border-radius: 12px; height: 10px; overflow: hidden; margin-bottom: 14px;">
         <div id="sync-progress-fill" style="width: 0%; height: 100%; background: #15803d; transition: width 0.3s ease;"></div>
       </div>
@@ -499,18 +499,7 @@
           
           <div class="form-group">
             <label>Class</label>
-            <select id="prof-input-class" class="input-field">
-              <option value="1st Class">1st Class</option>
-              <option value="2nd Class">2nd Class</option>
-              <option value="3rd Class">3rd Class</option>
-              <option value="4th Class">4th Class</option>
-              <option value="5th Class">5th Class</option>
-              <option value="6th Class">6th Class</option>
-              <option value="7th Class">7th Class</option>
-              <option value="8th Class">8th Class</option>
-              <option value="9th Class">9th Class</option>
-              <option value="10th Class" selected>10th Class</option>
-            </select>
+            <input type="text" id="prof-input-class" class="input-field" placeholder="e.g. 10th Class">
           </div>
 
           <div class="form-group">
@@ -519,11 +508,6 @@
               <option value="Bihar Board" selected>Bihar Board</option>
               <option value="CBSE Board">CBSE Board</option>
             </select>
-          </div>
-
-          <div class="form-group">
-            <label>Choose Avatar (500+ Avatars Available)</label>
-            <div class="avatar-grid" id="avatar-selector-grid"></div>
           </div>
 
           <button class="btn-submit" type="button" onclick="updateUserProfile()" style="margin-top: 10px;"><i class="fa-solid fa-floppy-disk"></i> Update Profile</button>
@@ -699,7 +683,6 @@
     let currentChatList = [];
     let activePaperExamId = null;
     let activePaperTimerInterval = null;
-    let syncInterval = null; // बैकग्राउंड सिंक कंट्रोल करने के लिए
 
     let currentChatMode = 'home';
     let activeTargetUserId = null;
@@ -798,19 +781,10 @@
       }
     }
 
-    // --- TINYDB & APP INVENTOR WEBVIEW STRING SYNC (MINIMAL FORMAT) ---
+    // --- TINYDB & APP INVENTOR WEBVIEW STRING SYNC ---
     function saveUserProfileToDb() {
       if (!currentUser) return;
-      
-      // TinyDB पर केवल जरूरी 4 क्रेडेंशियल्स का मिनिमल फॉर्मेट भेजा जाएगा
-      const minimalData = {
-        name: currentUser.name,
-        roll: currentUser.roll,
-        password: currentUser.password,
-        classVal: currentUser.classVal || "10th Class"
-      };
-
-      const dataStr = JSON.stringify(minimalData);
+      const dataStr = JSON.stringify(currentUser);
       localStorage.setItem('saved_user_profile', dataStr);
       
       if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
@@ -820,8 +794,8 @@
       }
     }
 
-    // --- AUTO-LOGIN LOGIC ON APP START (NO BACKGROUND SYNC DURING LOGIN) ---
-    window.onload = async () => {
+    // --- AUTO-LOGIN LOGIC ON APP START ---
+    window.onload = () => {
       try {
         let webViewData = window.WebViewerString || (window.AppInventor && typeof window.AppInventor.getWebViewString === 'function' ? window.AppInventor.getWebViewString() : null);
         
@@ -829,63 +803,22 @@
           webViewData = localStorage.getItem('saved_user_profile');
         }
 
-        if (webViewData && webViewData !== "{}" && webViewData !== "close_webviewer") {
-          const parsedData = JSON.parse(webViewData);
-          if (parsedData && parsedData.roll) {
-            // लॉगिन के समय एक बार फायरबेस से क्रेडेंशियल्स वेरीफाई करें और लाइव डीपी मंगाएं
-            let res = await fetch(`${FIREBASE_URL}/UsersMap/${parsedData.roll}.json`);
-            let uData = await res.json();
-
-            if (uData && uData.password === parsedData.password) {
-              currentUser = uData;
-              document.getElementById('auth-modal').style.display = 'none';
-              document.getElementById('user-badge-status').innerText = currentUser.name || 'Student';
-              populateProfileForm();
-              
-              // लॉगिन सफल होने के बाद ही अब बैकग्राउंड सिंक शुरू होगा
-              startBackgroundSync();
-              return;
-            }
+        if (webViewData && webViewData !== "{}") {
+          const parsedUser = JSON.parse(webViewData);
+          if (parsedUser && parsedUser.id) {
+            currentUser = parsedUser;
+            document.getElementById('auth-modal').style.display = 'none';
+            document.getElementById('user-badge-status').innerText = currentUser.name || 'Student';
+            populateProfileForm();
+            fetchFirebaseData();
+            return;
           }
         }
       } catch (e) {}
 
-      // अगर ऑटो-लॉगिन फेल हुआ, तो लॉगिन मॉडल दिखाएं (इस दौरान बैकग्राउंड सिंक बंद रहेगा)
       document.getElementById('auth-modal').style.display = 'flex';
       switchAuthMode('login');
     };
-
-    function startBackgroundSync() {
-      if (syncInterval) clearInterval(syncInterval);
-      fetchFirebaseData(); // तुरंत एक बार डेटा लाएं
-      syncInterval = setInterval(fetchFirebaseData, 2000); // इसके बाद बैकग्राउंड सिंक चालू रहेगा
-    }
-
-    function initAvatarGrid() {
-      const grid = document.getElementById('avatar-selector-grid');
-      if (!grid) return;
-      grid.innerHTML = '';
-      const styles = ['micah', 'adventurer', 'fun-emoji', 'avataaars', 'open-peeps', 'personas', 'bottts'];
-
-      for (let i = 1; i <= 500; i++) {
-        const style = styles[i % styles.length];
-        const seed = `RanjanAcademyAvatar_${i}`;
-        const url = `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}`;
-
-        const img = document.createElement('img');
-        img.src = url;
-        img.className = 'avatar-option' + (currentUser && currentUser.dp === url ? ' selected' : '');
-        img.onclick = () => {
-          document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
-          img.classList.add('selected');
-          if (currentUser) {
-            currentUser.dp = url;
-            document.getElementById('profile-preview-dp').src = url;
-          }
-        };
-        grid.appendChild(img);
-      }
-    }
 
     function getRankBadgeHtml(uid) {
       const rank = globalRankMap[uid];
@@ -905,7 +838,6 @@
       document.getElementById('profile-preview-roll').innerText = `Roll: ${currentUser.roll || 'N/A'}`;
       document.getElementById('profile-preview-dp').src = currentUser.dp || 'https://api.dicebear.com/7.x/micah/svg?seed=Default';
       document.getElementById('profile-rank-overlay').innerHTML = getRankBadgeHtml(currentUser.id);
-      initAvatarGrid();
     }
 
     async function updateUserProfile() {
@@ -918,15 +850,7 @@
       document.getElementById('user-badge-status').innerText = currentUser.name;
       document.getElementById('profile-preview-name').innerText = currentUser.name;
 
-      toggleProgressBar(true);
-      await fetch(`${FIREBASE_URL}/UsersMap/${currentUser.id}.json`, { 
-        method: 'PUT', 
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(currentUser) 
-      });
-      toggleProgressBar(false);
-      
-      // TinyDB में मिनिमल डेटा सेव करें
+      await fetch(`${FIREBASE_URL}/UsersMap/${currentUser.id}.json`, { method: 'PUT', body: JSON.stringify(currentUser) });
       saveUserProfileToDb();
 
       showToast('Profile Updated & Saved Successfully!');
@@ -935,7 +859,6 @@
 
     function handleLogOut() {
       currentUser = null;
-      if (syncInterval) clearInterval(syncInterval); // लॉगआउट होते ही बैकग्राउंड सिंक रोक दें
       localStorage.removeItem('saved_user_profile');
       
       if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
@@ -946,100 +869,71 @@
 
       document.getElementById('user-badge-status').innerText = 'Guest';
       document.getElementById('auth-modal').style.display = 'flex';
-      switchAuthMode('login');
       showToast('Logged out successfully.');
     }
 
     async function handleLogin() {
-      const nameInput = document.getElementById('login-name').value.trim();
       const rollInput = document.getElementById('login-roll').value.trim();
       const passInput = document.getElementById('login-pass').value.trim();
 
-      if (!nameInput || !rollInput || !passInput) { 
+      if (!rollInput || !passInput) { 
         showToast('Please fill all login fields'); 
         return; 
       }
 
-      toggleProgressBar(true);
-      try {
-        let res = await fetch(`${FIREBASE_URL}/UsersMap/${rollInput}.json`);
-        let uData = await res.json();
-        toggleProgressBar(false);
+      let res = await fetch(`${FIREBASE_URL}/UsersMap/${rollInput}.json`);
+      let uData = await res.json();
 
-        if (uData && uData.password === passInput) {
-          if (uData.name && uData.name.trim().toLowerCase() === nameInput.toLowerCase()) {
-            currentUser = uData;
-            document.getElementById('auth-modal').style.display = 'none';
-            document.getElementById('user-badge-status').innerText = currentUser.name;
-            populateProfileForm();
-            
-            // लॉगिन सफल होने पर TinyDB में सेव करें और बैकग्राउंड सिंक शुरू करें
-            saveUserProfileToDb();
-            startBackgroundSync();
+      if (uData && uData.password === passInput) {
+        currentUser = uData;
+        document.getElementById('auth-modal').style.display = 'none';
+        document.getElementById('user-badge-status').innerText = currentUser.name;
+        populateProfileForm();
+        saveUserProfileToDb();
 
-            showToast(`Welcome back, ${currentUser.name}!`);
-          } else {
-            showToast('Name does not match with this Roll Number!');
-          }
-        } else {
-          showToast('Invalid Roll Number or Password!');
-        }
-      } catch (err) {
-        toggleProgressBar(false);
-        showToast('Network error! Check connection.');
+        showToast(`Welcome back, ${currentUser.name}!`);
+        fetchFirebaseData();
+      } else {
+        showToast('Invalid Roll Number or Password!');
       }
     }
 
     async function handleSignUp() {
       const name = document.getElementById('reg-name').value.trim();
       const uid = document.getElementById('reg-id').value.trim();
+      const classVal = document.getElementById('reg-class').value.trim();
       const pass = document.getElementById('reg-pass').value.trim();
 
-      if (!name || !uid || !pass) { showToast('Fill all fields'); return; }
+      if (!name || !uid || !classVal || !pass) { showToast('Fill all fields'); return; }
 
-      toggleProgressBar(true);
-      try {
-        let res = await fetch(`${FIREBASE_URL}/UsersMap/${uid}.json`);
-        let existing = await res.json();
+      let res = await fetch(`${FIREBASE_URL}/UsersMap/${uid}.json`);
+      let existing = await res.json();
 
-        if (existing) {
-          toggleProgressBar(false);
-          showToast('Account already exists! Please Log In.');
-          switchAuthMode('login');
-          return;
-        }
-
-        currentUser = {
-          id: uid,
-          roll: uid,
-          name: name,
-          password: pass,
-          classVal: '10th Class',
-          board: 'Bihar Board',
-          dp: 'https://api.dicebear.com/7.x/micah/svg?seed=' + uid,
-          score: 0
-        };
-
-        await fetch(`${FIREBASE_URL}/UsersMap/${uid}.json`, { 
-          method: 'PUT', 
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(currentUser) 
-        });
-
-        toggleProgressBar(false);
-        document.getElementById('auth-modal').style.display = 'none';
-        document.getElementById('user-badge-status').innerText = name;
-        populateProfileForm();
-        
-        // साइन-अप सफल होने पर TinyDB में सेव करें और बैकग्राउंड सिंक शुरू करें
-        saveUserProfileToDb();
-        startBackgroundSync();
-
-        showToast('Account created successfully!');
-      } catch (err) {
-        toggleProgressBar(false);
-        showToast('Network error! Check connection.');
+      if (existing) {
+        showToast('Account already exists! Please Log In.');
+        switchAuthMode('login');
+        return;
       }
+
+      currentUser = {
+        id: uid,
+        roll: uid,
+        name: name,
+        password: pass,
+        classVal: classVal,
+        board: 'Bihar Board',
+        dp: `https://api.dicebear.com/7.x/micah/svg?seed=${name}`,
+        score: 0
+      };
+
+      await fetch(`${FIREBASE_URL}/UsersMap/${uid}.json`, { method: 'PUT', body: JSON.stringify(currentUser) });
+      document.getElementById('auth-modal').style.display = 'none';
+      document.getElementById('user-badge-status').innerText = name;
+      populateProfileForm();
+      saveUserProfileToDb();
+
+      showToast('Account created successfully!');
+      fetchFirebaseData();
     }
 
     async function fetchFirebaseData() {
@@ -1132,6 +1026,8 @@
         }
       } catch (e) {}
     }
+
+    setInterval(fetchFirebaseData, 2000);
 
     function updateGlobalRankMap() {
       const usersArr = Object.keys(userProfilesMap).map(uid => ({
