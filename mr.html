@@ -99,6 +99,7 @@
       text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.8);
     }
 
+    /* CUSTOM TOAST POPUP - SUPPORTS GREEN AND RED TYPE */
     #custom-toast {
       position: fixed;
       top: -70px;
@@ -117,11 +118,22 @@
       box-shadow: inset -4px -5px 8px rgba(30, 70, 50, 0.2), inset 4px 5px 8px rgba(255, 255, 255, 0.9), 0 12px 20px rgba(15, 35, 15, 0.15);
       backdrop-filter: blur(16px);
       z-index: 9999999;
-      transition: top 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transition: top 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s ease;
       pointer-events: none;
     }
     #custom-toast.show { top: 20px; }
-    #custom-toast i { color: #2e6618; font-size: 1.1rem; }
+    #custom-toast i { font-size: 1.1rem; }
+    #custom-toast.toast-error {
+      background: rgba(254, 226, 226, 0.98) !important;
+      border-color: rgba(239, 68, 68, 0.6) !important;
+      color: #991b1b !important;
+    }
+    #custom-toast.toast-error i { color: #dc2626 !important; }
+    #custom-toast.toast-success {
+      background: rgba(225, 250, 230, 0.95) !important;
+      color: var(--text-dark) !important;
+    }
+    #custom-toast.toast-success i { color: #2e6618 !important; }
 
     .content-area {
       flex: 1;
@@ -279,12 +291,25 @@
     .avatar-option.selected { border-color: #15803d; transform: scale(1.15); background: rgba(185, 232, 198, 0.95); }
 
     .chat-container { display: flex; flex-direction: column; gap: 12px; }
-    .chat-message { display: flex; align-items: flex-end; gap: 8px; max-width: 85%; position: relative; transition: transform 0.2s ease; }
+    .chat-message { display: flex; align-items: flex-end; gap: 8px; max-width: 85%; position: relative; }
     .chat-message.my-message { align-self: flex-end; flex-direction: row-reverse; }
     .chat-message.other-message { align-self: flex-start; }
     .chat-message.admin-message { align-self: flex-start; max-width: 90%; }
     .chat-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--card-border); flex-shrink: 0; cursor: pointer; }
-    .chat-bubble { padding: 12px 16px; border-radius: 22px; font-size: 0.9rem; word-break: break-word; border: 1.5px solid var(--card-border); transition: background 0.3s ease; }
+    
+    .chat-bubble-wrapper {
+      position: relative;
+      touch-action: pan-y;
+      will-change: transform;
+    }
+    .chat-bubble { 
+      padding: 12px 16px; 
+      border-radius: 22px; 
+      font-size: 0.9rem; 
+      word-break: break-word; 
+      border: 1.5px solid var(--card-border); 
+      transition: background 0.3s ease, transform 0.1s ease-out; 
+    }
     .my-message .chat-bubble { background: rgba(185, 230, 198, 0.85); color: #1f3a2b; border-bottom-right-radius: 4px; }
     .other-message .chat-bubble { background: rgba(255, 255, 255, 0.7); color: var(--text-dark); border-bottom-left-radius: 4px; }
     .admin-message .chat-bubble { background: rgba(234, 179, 8, 0.85); color: #000; font-weight: 800; border-bottom-left-radius: 4px; }
@@ -333,14 +358,33 @@
     .auth-tab-bar { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 10px; }
     .auth-tab { flex: 1; padding: 8px; text-align: center; font-weight: 800; cursor: pointer; color: var(--text-muted); border-radius: 12px; }
     .auth-tab.active { background: rgba(185, 232, 198, 0.9); color: var(--text-dark); }
+
+    /* FULLSCREEN DEDICATED VIDEO PLAYER CONTAINER */
+    #dedicated-fullscreen-player {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 99999999;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+    #dedicated-fullscreen-player video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
   </style>
 </head>
 <body>
 
   <div id="global-progress-bar"></div>
 
-  <div id="custom-toast">
-    <i class="fa-solid fa-circle-check"></i>
+  <!-- TOAST POPUP NOTIFICATION -->
+  <div id="custom-toast" class="toast-success">
+    <i id="toast-icon" class="fa-solid fa-circle-check"></i>
     <span id="toast-message">Notification</span>
   </div>
 
@@ -356,7 +400,8 @@
       </div>
 
       <div id="auth-form-login">
-        <div class="form-group"><label>Roll Number / ID</label><input type="text" id="login-roll" class="input-field" placeholder="Enter Roll Number"></div>
+        <div class="form-group"><label>Student Name</label><input type="text" id="login-name" class="input-field" placeholder="Enter Your Name"></div>
+        <div class="form-group"><label>Roll Number</label><input type="text" id="login-roll" class="input-field" placeholder="Enter Roll Number"></div>
         <div class="form-group"><label>Password</label><input type="password" id="login-pass" class="input-field" placeholder="Enter Password"></div>
         <button class="btn-submit" type="button" onclick="handleLogin()">Log In</button>
       </div>
@@ -364,7 +409,21 @@
       <div id="auth-form-signup" style="display: none;">
         <div class="form-group"><label>Full Name</label><input type="text" id="reg-name" class="input-field" placeholder="Your Name"></div>
         <div class="form-group"><label>Roll Number / User ID</label><input type="text" id="reg-id" class="input-field" placeholder="Create Roll / ID"></div>
-        <div class="form-group"><label>Class</label><input type="text" id="reg-class" class="input-field" placeholder="e.g. 10th Class"></div>
+        <div class="form-group">
+          <label>Class</label>
+          <select id="reg-class" class="input-field">
+            <option value="1st Class">1st Class</option>
+            <option value="2nd Class">2nd Class</option>
+            <option value="3rd Class">3rd Class</option>
+            <option value="4th Class">4th Class</option>
+            <option value="5th Class">5th Class</option>
+            <option value="6th Class">6th Class</option>
+            <option value="7th Class">7th Class</option>
+            <option value="8th Class">8th Class</option>
+            <option value="9th Class">9th Class</option>
+            <option value="10th Class" selected>10th Class</option>
+          </select>
+        </div>
         <div class="form-group"><label>Create Password</label><input type="password" id="reg-pass" class="input-field" placeholder="Create Password"></div>
         <button class="btn-submit" type="button" onclick="handleSignUp()">Create Account & Login</button>
       </div>
@@ -499,7 +558,18 @@
           
           <div class="form-group">
             <label>Class</label>
-            <input type="text" id="prof-input-class" class="input-field" placeholder="e.g. 10th Class">
+            <select id="prof-input-class" class="input-field">
+              <option value="1st Class">1st Class</option>
+              <option value="2nd Class">2nd Class</option>
+              <option value="3rd Class">3rd Class</option>
+              <option value="4th Class">4th Class</option>
+              <option value="5th Class">5th Class</option>
+              <option value="6th Class">6th Class</option>
+              <option value="7th Class">7th Class</option>
+              <option value="8th Class">8th Class</option>
+              <option value="9th Class">9th Class</option>
+              <option value="10th Class" selected>10th Class</option>
+            </select>
           </div>
 
           <div class="form-group">
@@ -508,6 +578,11 @@
               <option value="Bihar Board" selected>Bihar Board</option>
               <option value="CBSE Board">CBSE Board</option>
             </select>
+          </div>
+
+          <div class="form-group">
+            <label>Choose Avatar (500+ Avatars Available)</label>
+            <div class="avatar-grid" id="avatar-selector-grid"></div>
           </div>
 
           <button class="btn-submit" type="button" onclick="updateUserProfile()" style="margin-top: 10px;"><i class="fa-solid fa-floppy-disk"></i> Update Profile</button>
@@ -524,13 +599,26 @@
         <span id="reply-preview-text" style="font-weight:700; color:var(--text-dark); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Replying to...</span>
         <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="cancelReplyMessage()"></i>
       </div>
+      
+      <!-- INPUT ROW FOR ACTIVE USER -->
       <div id="chat-active-input-row" style="display:flex; width:100%; gap:10px; align-items:center;">
         <input type="text" id="chat-message-input" class="input-field" placeholder="Type a message..." style="flex: 1; border-radius: 20px; padding: 10px 16px;" onkeypress="handleChatKeyPress(event)">
         <button class="btn-submit" type="button" style="width: 45px; height: 45px; border-radius: 50%; padding: 0; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" onclick="sendChatMessage()">
           <i class="fa-solid fa-paper-plane" style="font-size: 0.95rem;"></i>
         </button>
       </div>
-      <div id="chat-blocked-notice" style="display:none; width:100%; text-align:center; font-size:0.8rem; font-weight:800; color:#b91c1c; padding:8px;"></div>
+
+      <!-- UNBLOCK BUTTON FOR BLOCKER -->
+      <div id="chat-unblock-action-row" style="display:none; width:100%;">
+        <button class="btn-submit btn-secondary" style="padding:10px;" onclick="toggleBlockActiveUser()">
+          <i class="fa-solid fa-unlock"></i> Unblock User to Chat
+        </button>
+      </div>
+
+      <!-- BLOCKED NOTICE FOR BLOCKED USER -->
+      <div id="chat-blocked-notice" style="display:none; width:100%; text-align:center; font-size:0.85rem; font-weight:800; color:#b91c1c; padding:8px; background:rgba(254,226,226,0.8); border-radius:14px; border:1px solid rgba(239,68,68,0.4);">
+        You are blocked by this user
+      </div>
     </div>
 
     <!-- QUIZ COMPARE VOTERS MODAL -->
@@ -603,33 +691,53 @@
       </div>
     </div>
 
-    <!-- IN-APP CLOUDINARY VIDEO PLAYER MODAL -->
+    <!-- SMALL POPUP CLOUDINARY VIDEO PLAYER MODAL -->
     <div id="cloud-video-modal" class="modal-overlay" onclick="closeCloudPlayer()">
       <div class="modal-card" id="cloud-video-card-box" style="width: 95%; max-width: 480px; padding: 12px; transition: all 0.3s ease; position: relative; overflow: hidden;" onclick="event.stopPropagation()">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; z-index:10; position:relative;">
           <h3 id="cloud-v-title" style="font-size:0.9rem; font-weight:800;">Cloud Video Player</h3>
           <div style="display:flex; gap:12px; align-items:center;">
-            <i class="fa-solid fa-expand" id="video-expand-icon" style="font-size:1.1rem; cursor:pointer;" onclick="toggleVideoFullscreen()" title="Fullscreen / Fill Parent"></i>
+            <i class="fa-solid fa-expand" id="video-expand-icon" style="font-size:1.1rem; cursor:pointer;" onclick="launchDedicatedFullscreenVideo()" title="Fullscreen"></i>
             <i class="fa-solid fa-xmark" style="font-size:1.2rem; cursor:pointer;" onclick="closeCloudPlayer()"></i>
           </div>
         </div>
         
-        <div id="video-overlay-wrapper" style="position: relative; width: 100%; background: #000; border-radius: 18px; overflow: hidden;" onclick="toggleVideoControlsOverlay()">
+        <div id="video-overlay-wrapper" style="position: relative; width: 100%; background: #000; border-radius: 18px; overflow: hidden;" onclick="toggleVideoControlsOverlay('popup')">
           <video id="cloud-video-element" style="width: 100%; max-height: 55vh; display: block; object-fit: contain;"></video>
           
-          <div id="video-floating-controls" style="position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: flex; flex-direction: column; justify-content: space-between; padding: 16px; opacity: 1; transition: opacity 0.3s ease; pointer-events: auto;">
+          <!-- TOUCH CONTROLS OVERLAY (HIDDEN BY DEFAULT UNTIL TAP) -->
+          <div id="video-floating-controls" style="position: absolute; inset: 0; background: rgba(0,0,0,0.45); display: flex; flex-direction: column; justify-content: space-between; padding: 16px; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;">
             <div style="display: flex; justify-content: flex-end;">
-              <button onclick="closeCloudPlayer(); event.stopPropagation();" style="background: rgba(255,255,255,0.8); border: none; border-radius: 50%; width: 32px; height: 32px; font-weight: 800; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+              <button onclick="launchDedicatedFullscreenVideo(); event.stopPropagation();" style="background: rgba(255,255,255,0.85); border: none; border-radius: 50%; width: 34px; height: 34px; font-weight: 800; cursor: pointer;"><i class="fa-solid fa-expand"></i></button>
             </div>
             <div style="display: flex; justify-content: center; align-items: center; gap: 20px;">
-              <button onclick="skipVideoTime(-10); event.stopPropagation();" style="background: rgba(255,255,255,0.7); border: none; border-radius: 50%; width: 38px; height: 38px; cursor: pointer;"><i class="fa-solid fa-backward-step"></i></button>
-              <button onclick="toggleCustomPlayPause(); event.stopPropagation();" style="background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 48px; height: 48px; cursor: pointer;"><i id="custom-play-pause-icon" class="fa-solid fa-pause" style="font-size: 1.1rem;"></i></button>
-              <button onclick="skipVideoTime(10); event.stopPropagation();" style="background: rgba(255,255,255,0.7); border: none; border-radius: 50%; width: 38px; height: 38px; cursor: pointer;"><i class="fa-solid fa-forward-step"></i></button>
+              <button onclick="skipVideoTime(-10, 'popup'); event.stopPropagation();" style="background: rgba(255,255,255,0.7); border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer;"><i class="fa-solid fa-backward-step"></i></button>
+              <button onclick="toggleCustomPlayPause('popup'); event.stopPropagation();" style="background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 50px; height: 50px; cursor: pointer;"><i id="custom-play-pause-icon" class="fa-solid fa-pause" style="font-size: 1.2rem;"></i></button>
+              <button onclick="skipVideoTime(10, 'popup'); event.stopPropagation();" style="background: rgba(255,255,255,0.7); border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer;"><i class="fa-solid fa-forward-step"></i></button>
             </div>
-            <div id="video-progress-timeline" style="width: 100%; background: rgba(255,255,255,0.3); height: 5px; border-radius: 4px; overflow: hidden;">
+            <div style="width: 100%; background: rgba(255,255,255,0.3); height: 5px; border-radius: 4px; overflow: hidden;">
               <div id="video-progress-bar" style="width: 0%; height: 100%; background: #10b981;"></div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FULLSCREEN DEDICATED PLAYER OVERLAY -->
+    <div id="dedicated-fullscreen-player" onclick="toggleVideoControlsOverlay('fullscreen')">
+      <video id="fullscreen-video-element"></video>
+      <div id="fullscreen-floating-controls" style="position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: space-between; padding: 24px; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h3 id="fullscreen-v-title" style="color: #fff; font-size: 1rem; font-weight: 800;">Cloud Video Player</h3>
+          <button onclick="closeDedicatedFullscreenVideo(); event.stopPropagation();" style="background: rgba(255,255,255,0.85); border: none; border-radius: 50%; width: 38px; height: 38px; font-weight: 800; cursor: pointer;"><i class="fa-solid fa-compress"></i></button>
+        </div>
+        <div style="display: flex; justify-content: center; align-items: center; gap: 30px;">
+          <button onclick="skipVideoTime(-10, 'fullscreen'); event.stopPropagation();" style="background: rgba(255,255,255,0.7); border: none; border-radius: 50%; width: 48px; height: 48px; cursor: pointer;"><i class="fa-solid fa-backward-step"></i></button>
+          <button onclick="toggleCustomPlayPause('fullscreen'); event.stopPropagation();" style="background: rgba(255,255,255,0.95); border: none; border-radius: 50%; width: 60px; height: 60px; cursor: pointer;"><i id="fullscreen-play-pause-icon" class="fa-solid fa-pause" style="font-size: 1.5rem;"></i></button>
+          <button onclick="skipVideoTime(10, 'fullscreen'); event.stopPropagation();" style="background: rgba(255,255,255,0.7); border: none; border-radius: 50%; width: 48px; height: 48px; cursor: pointer;"><i class="fa-solid fa-forward-step"></i></button>
+        </div>
+        <div style="width: 100%; background: rgba(255,255,255,0.3); height: 6px; border-radius: 4px; overflow: hidden;">
+          <div id="fullscreen-video-progress-bar" style="width: 0%; height: 100%; background: #10b981;"></div>
         </div>
       </div>
     </div>
@@ -695,12 +803,23 @@
     let chatHoldTimer = null;
     let replyingToMsg = null;
     let controlsHideTimeout = null;
+    let activeVideoUrl = "";
     let globalRankMap = {};
 
-    function showToast(msg) {
+    // TOAST NOTIFICATION (RED FOR ERROR, GREEN FOR SUCCESS)
+    function showToast(msg, isError = false) {
       const toast = document.getElementById('custom-toast');
+      const icon = document.getElementById('toast-icon');
       document.getElementById('toast-message').innerText = msg;
-      toast.classList.add('show');
+
+      if (isError) {
+        toast.className = 'toast-error show';
+        icon.className = 'fa-solid fa-circle-xmark';
+      } else {
+        toast.className = 'toast-success show';
+        icon.className = 'fa-solid fa-circle-check';
+      }
+
       setTimeout(() => { toast.classList.remove('show'); }, 3000);
     }
 
@@ -723,9 +842,10 @@
       }
     }
 
-    // --- ACTIVITY STARTER & GITHUB.IO LINK LOGIC ---
+    // --- UPDATED GITHUB LINK & ACTIVITY STARTER ---
     function openDpActivityStarter() {
-      const dpUrl = "https://ankeshkumar631-ui.github.io/RNS-live/dp.html";
+      const dpUrl = "https://ankeshkumar6931-ui.github.io/RNS-live/dp.html";
+      
       if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
         window.location.href = dpUrl;
       } else {
@@ -758,7 +878,7 @@
 
     async function syncDpFromFirebase() {
       if (!currentUser || !currentUser.id) {
-        showToast('Please login first to sync DP.');
+        showToast('Please login first to sync DP.', true);
         closeSyncDpModal();
         return;
       }
@@ -769,22 +889,32 @@
           currentUser.dp = freshData.dp;
           document.getElementById('profile-preview-dp').src = currentUser.dp;
           saveUserProfileToDb();
-          showToast('DP Synced Successfully & Saved to TinyDB!');
+          showToast('DP Synced Successfully from Firebase!');
         } else {
-          showToast('No updated DP found on Firebase yet.');
+          showToast('No updated DP found on Firebase yet.', true);
         }
       } catch (e) {
-        showToast('Failed to sync DP.');
+        showToast('Failed to sync DP.', true);
       } finally {
         toggleProgressBar(false);
         closeSyncDpModal();
       }
     }
 
-    // --- TINYDB & APP INVENTOR WEBVIEW STRING SYNC ---
+    // --- TINYDB SYNC (ONLY KEEPS NAME, ROLL, CLASS, PASS - DP FROM FIREBASE) ---
     function saveUserProfileToDb() {
       if (!currentUser) return;
-      const dataStr = JSON.stringify(currentUser);
+      
+      const cleanUserData = {
+        id: currentUser.id,
+        roll: currentUser.roll,
+        name: currentUser.name,
+        password: currentUser.password,
+        classVal: currentUser.classVal || '10th Class',
+        board: currentUser.board || 'Bihar Board'
+      };
+
+      const dataStr = JSON.stringify(cleanUserData);
       localStorage.setItem('saved_user_profile', dataStr);
       
       if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
@@ -809,7 +939,6 @@
             currentUser = parsedUser;
             document.getElementById('auth-modal').style.display = 'none';
             document.getElementById('user-badge-status').innerText = currentUser.name || 'Student';
-            populateProfileForm();
             fetchFirebaseData();
             return;
           }
@@ -819,6 +948,32 @@
       document.getElementById('auth-modal').style.display = 'flex';
       switchAuthMode('login');
     };
+
+    function initAvatarGrid() {
+      const grid = document.getElementById('avatar-selector-grid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      const styles = ['micah', 'adventurer', 'fun-emoji', 'avataaars', 'open-peeps', 'personas', 'bottts'];
+
+      for (let i = 1; i <= 500; i++) {
+        const style = styles[i % styles.length];
+        const seed = `RanjanAcademyAvatar_${i}`;
+        const url = `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}`;
+
+        const img = document.createElement('img');
+        img.src = url;
+        img.className = 'avatar-option' + (currentUser && currentUser.dp === url ? ' selected' : '');
+        img.onclick = () => {
+          document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
+          img.classList.add('selected');
+          if (currentUser) {
+            currentUser.dp = url;
+            document.getElementById('profile-preview-dp').src = url;
+          }
+        };
+        grid.appendChild(img);
+      }
+    }
 
     function getRankBadgeHtml(uid) {
       const rank = globalRankMap[uid];
@@ -838,6 +993,7 @@
       document.getElementById('profile-preview-roll').innerText = `Roll: ${currentUser.roll || 'N/A'}`;
       document.getElementById('profile-preview-dp').src = currentUser.dp || 'https://api.dicebear.com/7.x/micah/svg?seed=Default';
       document.getElementById('profile-rank-overlay').innerHTML = getRankBadgeHtml(currentUser.id);
+      initAvatarGrid();
     }
 
     async function updateUserProfile() {
@@ -853,7 +1009,7 @@
       await fetch(`${FIREBASE_URL}/UsersMap/${currentUser.id}.json`, { method: 'PUT', body: JSON.stringify(currentUser) });
       saveUserProfileToDb();
 
-      showToast('Profile Updated & Saved Successfully!');
+      showToast('Profile Updated Successfully!');
       fetchFirebaseData();
     }
 
@@ -873,11 +1029,12 @@
     }
 
     async function handleLogin() {
+      const nameInput = document.getElementById('login-name').value.trim();
       const rollInput = document.getElementById('login-roll').value.trim();
       const passInput = document.getElementById('login-pass').value.trim();
 
-      if (!rollInput || !passInput) { 
-        showToast('Please fill all login fields'); 
+      if (!nameInput || !rollInput || !passInput) { 
+        showToast('Please fill all login fields', true); 
         return; 
       }
 
@@ -885,33 +1042,39 @@
       let uData = await res.json();
 
       if (uData && uData.password === passInput) {
-        currentUser = uData;
-        document.getElementById('auth-modal').style.display = 'none';
-        document.getElementById('user-badge-status').innerText = currentUser.name;
-        populateProfileForm();
-        saveUserProfileToDb();
+        if (uData.name && uData.name.trim().toLowerCase() === nameInput.toLowerCase()) {
+          currentUser = uData;
+          document.getElementById('auth-modal').style.display = 'none';
+          document.getElementById('user-badge-status').innerText = currentUser.name;
+          populateProfileForm();
+          saveUserProfileToDb();
 
-        showToast(`Welcome back, ${currentUser.name}!`);
-        fetchFirebaseData();
+          showToast(`Welcome back, ${currentUser.name}!`);
+          fetchFirebaseData();
+        } else {
+          showToast('Name does not match with this Roll Number!', true);
+        }
       } else {
-        showToast('Invalid Roll Number or Password!');
+        showToast('Invalid Roll Number or Password!', true);
       }
     }
 
     async function handleSignUp() {
       const name = document.getElementById('reg-name').value.trim();
       const uid = document.getElementById('reg-id').value.trim();
-      const classVal = document.getElementById('reg-class').value.trim();
       const pass = document.getElementById('reg-pass').value.trim();
+      const classVal = document.getElementById('reg-class').value;
 
-      if (!name || !uid || !classVal || !pass) { showToast('Fill all fields'); return; }
+      if (!name || !uid || !pass) { 
+        showToast('Please fill all sign-up fields', true); 
+        return; 
+      }
 
       let res = await fetch(`${FIREBASE_URL}/UsersMap/${uid}.json`);
       let existing = await res.json();
 
       if (existing) {
-        showToast('Account already exists! Please Log In.');
-        switchAuthMode('login');
+        showToast('This Roll / ID already exists! Please Log In or choose another.', true);
         return;
       }
 
@@ -922,7 +1085,7 @@
         password: pass,
         classVal: classVal,
         board: 'Bihar Board',
-        dp: `https://api.dicebear.com/7.x/micah/svg?seed=${name}`,
+        dp: 'https://api.dicebear.com/7.x/micah/svg?seed=' + uid,
         score: 0
       };
 
@@ -1049,7 +1212,7 @@
           const scoreToDeduct = oldP.paperSubmissions[currentUser.id].score || 0;
           currentUser.score = Math.max(0, (currentUser.score || 0) - scoreToDeduct);
           fetch(`${FIREBASE_URL}/UsersMap/${currentUser.id}.json`, { method: 'PUT', body: JSON.stringify(currentUser) });
-          showToast('A deleted paper set score was rolled back.');
+          showToast('A deleted paper set score was rolled back.', true);
         }
       });
     }
@@ -1289,12 +1452,12 @@
     }
 
     async function answerQuiz(quizId, selectedOptIdx) {
-      if (!currentUser) { showToast('Please login first!'); return; }
+      if (!currentUser) { showToast('Please login first!', true); return; }
 
       const quiz = quizzesList.find(q => q.id === quizId);
       if (!quiz) return;
 
-      if (quiz.isAnswersDisabled) { showToast('Quiz is locked by admin!'); return; }
+      if (quiz.isAnswersDisabled) { showToast('Quiz is locked by admin!', true); return; }
       if (quiz.responses && quiz.responses[currentUser.id] !== undefined) return;
 
       quiz.responses = quiz.responses || {};
@@ -1305,7 +1468,7 @@
         currentUser.score = (currentUser.score || 0) + 1;
         showToast('Correct Answer! +1 Score');
       } else {
-        showToast('Wrong Answer!');
+        showToast('Wrong Answer!', true);
       }
 
       renderQuizzesList();
@@ -1330,7 +1493,7 @@
         let thumbUrl = isCloud ? (post.media.thumbnail ? post.media.thumbnail.url : '') : `https://img.youtube.com/vi/${post.videoId}/hqdefault.jpg`;
 
         container.innerHTML += `
-          <div class="video-card" onclick="handleVideoClick('${videoUrl}', ${isCloud})">
+          <div class="video-card" onclick="handleVideoClick('${videoUrl}', ${isCloud}, '${post.title || 'Playing Media'}')">
             <span class="video-type-badge ${isCloud ? 'badge-cloud' : 'badge-yt'}">${isCloud ? 'Cloudinary (App)' : 'YouTube App'}</span>
             <img src="${thumbUrl}" class="video-thumb" onerror="this.src='https://placehold.co/400x200?text=Video'">
             <div style="padding: 12px 16px; font-weight:800; font-size:0.9rem;">${post.title}</div>
@@ -1339,15 +1502,15 @@
       });
     }
 
-    function handleVideoClick(url, isCloudinary) {
+    function handleVideoClick(url, isCloudinary, title) {
       if (isCloudinary) {
-        document.getElementById('cloud-v-title').innerText = "Playing Media";
+        activeVideoUrl = url;
+        document.getElementById('cloud-v-title').innerText = title || "Playing Media";
         const vEl = document.getElementById('cloud-video-element');
         vEl.src = url;
         document.getElementById('cloud-video-modal').style.display = 'flex';
         vEl.play();
         document.getElementById('custom-play-pause-icon').className = "fa-solid fa-pause";
-        startControlsHideTimer();
       } else {
         if (window.AppInventor && window.AppInventor.setWebViewString) {
           window.AppInventor.setWebViewString("OPEN_ACTIVITY_YOUTUBE:" + url);
@@ -1357,12 +1520,15 @@
       }
     }
 
-    function toggleVideoControlsOverlay() {
-      const ctrl = document.getElementById('video-floating-controls');
-      if (ctrl.style.opacity === '0') {
+    // YOUTUBE-STYLE TOUCH OVERLAY FOR CONTROLS (POPUP & FULLSCREEN)
+    function toggleVideoControlsOverlay(mode) {
+      const ctrl = document.getElementById(mode === 'fullscreen' ? 'fullscreen-floating-controls' : 'video-floating-controls');
+      if (!ctrl) return;
+
+      if (ctrl.style.opacity === '0' || ctrl.style.opacity === '') {
         ctrl.style.opacity = '1';
         ctrl.style.pointerEvents = 'auto';
-        startControlsHideTimer();
+        startControlsHideTimer(mode);
       } else {
         ctrl.style.opacity = '0';
         ctrl.style.pointerEvents = 'none';
@@ -1370,10 +1536,10 @@
       }
     }
 
-    function startControlsHideTimer() {
+    function startControlsHideTimer(mode) {
       if (controlsHideTimeout) clearTimeout(controlsHideTimeout);
       controlsHideTimeout = setTimeout(() => {
-        const ctrl = document.getElementById('video-floating-controls');
+        const ctrl = document.getElementById(mode === 'fullscreen' ? 'fullscreen-floating-controls' : 'video-floating-controls');
         if (ctrl) {
           ctrl.style.opacity = '0';
           ctrl.style.pointerEvents = 'none';
@@ -1381,9 +1547,9 @@
       }, 3000);
     }
 
-    function toggleCustomPlayPause() {
-      const vEl = document.getElementById('cloud-video-element');
-      const icon = document.getElementById('custom-play-pause-icon');
+    function toggleCustomPlayPause(mode) {
+      const vEl = document.getElementById(mode === 'fullscreen' ? 'fullscreen-video-element' : 'cloud-video-element');
+      const icon = document.getElementById(mode === 'fullscreen' ? 'fullscreen-play-pause-icon' : 'custom-play-pause-icon');
       if (vEl.paused) {
         vEl.play();
         icon.className = "fa-solid fa-pause";
@@ -1391,35 +1557,48 @@
         vEl.pause();
         icon.className = "fa-solid fa-play";
       }
-      startControlsHideTimer();
+      startControlsHideTimer(mode);
     }
 
-    function skipVideoTime(sec) {
-      const vEl = document.getElementById('cloud-video-element');
+    function skipVideoTime(sec, mode) {
+      const vEl = document.getElementById(mode === 'fullscreen' ? 'fullscreen-video-element' : 'cloud-video-element');
       vEl.currentTime += sec;
-      startControlsHideTimer();
+      startControlsHideTimer(mode);
     }
 
-    function toggleVideoFullscreen() {
-      const box = document.getElementById('cloud-video-card-box');
-      const vEl = document.getElementById('cloud-video-element');
-      if (!document.fullscreenElement) {
-        if (box.requestFullscreen) box.requestFullscreen();
-        else if (box.webkitRequestFullscreen) box.webkitRequestFullscreen();
-        vEl.style.objectFit = 'cover';
-        vEl.style.height = '100vh';
-      } else {
-        if (document.exitFullscreen) document.exitFullscreen();
-        vEl.style.objectFit = 'contain';
-        vEl.style.height = '55vh';
-      }
+    // FULLSCREEN LAUNCHER - CLOSES SMALL POPUP AND OPENS CLEAN FULLSCREEN
+    function launchDedicatedFullscreenVideo() {
+      const popupV = document.getElementById('cloud-video-element');
+      const currentTime = popupV ? popupV.currentTime : 0;
+      
+      closeCloudPlayer();
+
+      const fsPlayer = document.getElementById('dedicated-fullscreen-player');
+      const fsVideo = document.getElementById('fullscreen-video-element');
+      
+      fsVideo.src = activeVideoUrl;
+      fsVideo.currentTime = currentTime;
+      fsPlayer.style.display = 'flex';
+      fsVideo.play();
+      document.getElementById('fullscreen-play-pause-icon').className = "fa-solid fa-pause";
+      
+      if (fsPlayer.requestFullscreen) fsPlayer.requestFullscreen();
+      else if (fsPlayer.webkitRequestFullscreen) fsPlayer.webkitRequestFullscreen();
+    }
+
+    function closeDedicatedFullscreenVideo() {
+      const fsPlayer = document.getElementById('dedicated-fullscreen-player');
+      const fsVideo = document.getElementById('fullscreen-video-element');
+      fsVideo.pause();
+      fsVideo.src = '';
+      if (document.fullscreenElement) document.exitFullscreen();
+      fsPlayer.style.display = 'none';
     }
 
     function closeCloudPlayer() {
       const vEl = document.getElementById('cloud-video-element');
       vEl.pause();
       vEl.src = '';
-      if (document.fullscreenElement) document.exitFullscreen();
       document.getElementById('cloud-video-modal').style.display = 'none';
     }
 
@@ -1430,6 +1609,17 @@
           if (vEl.duration) {
             let pct = (vEl.currentTime / vEl.duration) * 100;
             const bar = document.getElementById('video-progress-bar');
+            if (bar) bar.style.width = pct + '%';
+          }
+        });
+      }
+
+      const fsVideo = document.getElementById('fullscreen-video-element');
+      if (fsVideo) {
+        fsVideo.addEventListener('timeupdate', () => {
+          if (fsVideo.duration) {
+            let pct = (fsVideo.currentTime / fsVideo.duration) * 100;
+            const bar = document.getElementById('fullscreen-video-progress-bar');
             if (bar) bar.style.width = pct + '%';
           }
         });
@@ -1793,7 +1983,7 @@
       await fetch(`${FIREBASE_URL}/Papers.json`, { method: 'PUT', body: JSON.stringify(papersList) });
 
       if (isAutoSubmit) {
-        showToast('⌛ Time Up! Auto Submitted');
+        showToast('⌛ Time Up! Auto Submitted', true);
         closePaperExamModal();
       } else {
         showToast(`Paper Submitted! Score: ${scoreEarned} Score`);
@@ -1899,7 +2089,10 @@
 
       const isBlockedByAdmin = currentUser && userProfilesMap[currentUser.id] && userProfilesMap[currentUser.id].isBlocked;
       const inputRow = document.getElementById('chat-active-input-row');
+      const unblockBtnRow = document.getElementById('chat-unblock-action-row');
       const blockedNotice = document.getElementById('chat-blocked-notice');
+
+      unblockBtnRow.style.display = 'none';
 
       if (isBlockedByAdmin) {
         inputRow.style.display = 'none';
@@ -1957,20 +2150,28 @@
       fetchFirebaseData();
     }
 
+    // UPDATED BLOCK/UNBLOCK UI ROUTER
     function updateDmBlockStatusUI() {
       const inputRow = document.getElementById('chat-active-input-row');
+      const unblockBtnRow = document.getElementById('chat-unblock-action-row');
       const blockedNotice = document.getElementById('chat-blocked-notice');
       if (!inputRow || !blockedNotice || !activeTargetUserId) return;
 
       const iBlockedThem = blockedUsersMap[activeTargetUserId] === true;
       const theyBlockedMe = remoteBlockedByList[activeTargetUserId] === true;
 
-      if (iBlockedThem || theyBlockedMe) {
+      if (iBlockedThem) {
         inputRow.style.display = 'none';
+        blockedNotice.style.display = 'none';
+        unblockBtnRow.style.display = 'block';
+      } else if (theyBlockedMe) {
+        inputRow.style.display = 'none';
+        unblockBtnRow.style.display = 'none';
         blockedNotice.style.display = 'block';
-        blockedNotice.innerText = theyBlockedMe ? "You are blocked by this user" : "You have blocked this user";
+        blockedNotice.innerText = "You are blocked by this user";
       } else {
         inputRow.style.display = 'flex';
+        unblockBtnRow.style.display = 'none';
         blockedNotice.style.display = 'none';
       }
     }
@@ -2076,7 +2277,7 @@
         showToast('User unblocked successfully.');
       } else {
         blockedUsersMap[activeTargetUserId] = true;
-        showToast('User blocked successfully.');
+        showToast('User blocked successfully.', true);
       }
 
       await fetch(`${FIREBASE_URL}/BlockedUsers/${currentUser.id}.json`, {
@@ -2084,7 +2285,8 @@
         body: JSON.stringify(blockedUsersMap)
       });
 
-      closeActiveChat();
+      updateDmBlockStatusUI();
+      document.getElementById('dropdown-block-btn').innerText = isCurrentlyBlocked ? 'Block User' : 'Unblock User';
     }
 
     async function deleteActiveChat() {
@@ -2149,7 +2351,7 @@
           renderChatMessages(currentChatList);
           showToast('Selected messages deleted!');
         } catch (e) {
-          showToast('Error deleting messages.');
+          showToast('Error deleting messages.', true);
         } finally {
           toggleProgressBar(false);
         }
@@ -2162,7 +2364,8 @@
       const previewText = document.getElementById('reply-preview-text');
       previewText.innerText = `Replying to ${senderName}: ${text}`;
       previewBox.style.display = 'flex';
-      document.getElementById('chat-message-input').focus();
+      const input = document.getElementById('chat-message-input');
+      if (input) input.focus();
     }
 
     function cancelReplyMessage() {
@@ -2220,7 +2423,7 @@
             <img src="${dpDisplay}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid var(--card-border);">
             ${getRankBadgeHtml(msg.senderId)}
           </div>
-          <div class="chat-bubble-wrapper" style="flex:1;">
+          <div class="chat-bubble-wrapper">
             <div id="bubble_${msg.msgId}" class="chat-bubble" style="${isSelected ? 'border: 2px solid #ef4444; background: rgba(239, 68, 68, 0.2);' : ''}">
               ${replyHtml}
               <div>${msg.text} ${isSelected ? ' <i class="fa-solid fa-check" style="color:#ef4444;"></i>' : ''}</div>
@@ -2228,19 +2431,44 @@
           </div>
         `;
 
+        const wrapper = msgDiv.querySelector('.chat-bubble-wrapper');
         const bubbleEl = msgDiv.querySelector('.chat-bubble');
+        
+        // --- LONGER SWIPE-TO-REPLY WITH REAL-TIME DRAGGING EFFECT ---
         let startX = 0;
-        bubbleEl.addEventListener('touchstart', (e) => {
+        let currentX = 0;
+        let isDragging = false;
+        const SWIPE_THRESHOLD = 120; // LONGER LIMIT TO TRIGGER REPLY
+
+        wrapper.addEventListener('touchstart', (e) => {
           startX = e.touches[0].clientX;
+          isDragging = true;
+          bubbleEl.style.transition = 'none';
         });
 
-        bubbleEl.addEventListener('touchend', (e) => {
-          let endX = e.changedTouches[0].clientX;
-          if (endX - startX > 100) {
-            bubbleEl.style.transform = 'translateX(25px)';
-            setTimeout(() => { bubbleEl.style.transform = 'translateX(0)'; }, 250);
+        wrapper.addEventListener('touchmove', (e) => {
+          if (!isDragging) return;
+          const touchX = e.touches[0].clientX;
+          const diffX = touchX - startX;
+
+          if (diffX > 0) {
+            currentX = Math.min(diffX, SWIPE_THRESHOLD + 30);
+            bubbleEl.style.transform = `translateX(${currentX}px)`;
+          }
+        });
+
+        wrapper.addEventListener('touchend', () => {
+          if (!isDragging) return;
+          isDragging = false;
+          bubbleEl.style.transition = 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)';
+
+          if (currentX >= SWIPE_THRESHOLD) {
+            if (navigator.vibrate) navigator.vibrate(40);
             setReplyMessage(msg.msgId, msg.senderName || uProf.name || 'Student', msg.text);
           }
+
+          bubbleEl.style.transform = 'translateX(0px)';
+          currentX = 0;
         });
 
         bubbleEl.addEventListener('click', (e) => {
@@ -2255,7 +2483,7 @@
               renderChatMessages(currentChatList);
               updateBatchDeleteBar();
             } else {
-              showToast("You can only delete your own messages.");
+              showToast("You can only delete your own messages.", true);
             }
           }, 800);
         });
@@ -2268,7 +2496,7 @@
               renderChatMessages(currentChatList);
               updateBatchDeleteBar();
             } else {
-              showToast("You can only delete your own messages.");
+              showToast("You can only delete your own messages.", true);
             }
           }, 800);
         });
@@ -2286,7 +2514,7 @@
       if (!isChatMultiSelect) return;
       e.stopPropagation();
       if (!isMyMsg) {
-        showToast("You can only select your own messages for deletion.");
+        showToast("You can only select your own messages for deletion.", true);
         return;
       }
       if (selectedChatMsgIds.has(msgId)) {
@@ -2300,7 +2528,7 @@
 
     async function sendChatMessage() {
       if (!currentUser) {
-        showToast('Please login first!');
+        showToast('Please login first!', true);
         return;
       }
       const inputEl = document.getElementById('chat-message-input');
@@ -2308,7 +2536,7 @@
       if (!text) return;
 
       if (currentChatMode === 'dm' && activeTargetUserId && (blockedUsersMap[activeTargetUserId] || remoteBlockedByList[activeTargetUserId])) {
-        showToast('Cannot send message. User is blocked.');
+        showToast('Cannot send message. User is blocked.', true);
         return;
       }
 
@@ -2346,7 +2574,7 @@
         inputEl.value = '';
         fetchFirebaseData();
       } catch (e) {
-        showToast('Failed to send message.');
+        showToast('Failed to send message.', true);
       } finally {
         toggleProgressBar(false);
       }
